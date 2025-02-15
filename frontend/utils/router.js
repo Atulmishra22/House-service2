@@ -1,6 +1,4 @@
-const Home = {
-  template: `<h1> Home</h1>`,
-};
+import Home from "../pages/Home.js";
 import CustomerDashboard from "../pages/CustomerDashboard.js";
 import LoginPage from "../pages/LoginPage.js";
 import ProfessionalDashboard from "../pages/ProfessionalDashboard.js";

@@ -1,16 +1,82 @@
 from backend.model import db, Users, Professional, Roles
-from uuid import uuid4
-from flask_security import hash_password
+from flask_security import auth_required, current_user, roles_required
+from flask_restful import Api, Resource,marshal_with, fields
+from flask import jsonify , request
 
-def create_professional():
-    if not Professional.query.filter_by(email="prof@mail.com").first():
+api = Api(prefix="/api")
 
-        prof1 = Professional(email="prof@mail.com",name="prof1",password=hash_password("pass"),experience= 3, fs_uniquifier=uuid4().hex)
-        db.session.add(prof1)
-        role = Roles.query.filter_by(name="professional").first()
-        prof1.roles.append(role)
-        db.session.commit()
+prof_fields={
+    'id':fields.Integer,
+    'email':fields.String,
+    'name':fields.String,
+    'phone':fields.Integer,
+    'active':fields.Boolean,
+    'address':fields.String,
+    'pincode':fields.Integer,
+    'service_id':fields.Integer,
+    'experience':fields.Integer,
+    'file_path':fields.String,
+    'date_created':fields.DateTime
+}
 
+class ProfsAPI(Resource):
+
+    @marshal_with(prof_fields)
+    @auth_required('token')
+    @roles_required('admin')
+    def get(self):
+        profs = Professional.query.all()
+        return profs
     
-create_professional()
+class ProfAPI(Resource):
+
+    @marshal_with(prof_fields)
+    @auth_required('token')
+    @roles_required(['admin','professional'])
+    def get(self,id):
+        prof = Professional.query.get(id)
+        if not prof:
+            return {"message": "Not Found"},404
+        return prof
+    
+    @auth_required('token')
+    @roles_required('professional')
+    def put(self,id):
+        prof = Professional.query.get(id)
+        if not prof:
+            return {"message": "Not Found"},404
+        data = request.get_json()
+        if prof.id == current_user.id:
+            try:
+                prof.email = data.get('email')
+                prof.name = data.get('name')
+                prof.phone= data.get('phone')
+                prof.address= data.get('address')
+                prof.experience = data.get('experience')
+                prof.pincode = data.get('pincode')
+
+                db.session.commit()
+                return jsonify({"message": "updated Sucessfully"}),200
+            except:
+                db.session.rollback()
+                return jsonify({"message":"Updation Unsucessfull"}), 500
+        else:
+            return ({"message":"Not Authorised"})
+    
+    @auth_required('token')
+    def delete(self,id):
+        prof = Professional.query.get(id)
+        if not prof:
+            return {"message": "Not Found"},404
+        try:
+            db.session.delete()
+            return jsonify({"message":"Deleted Sucessfully"}),200
+        except:
+            db.session.rollback()
+            return jsonify({"message":"Deletion Unsucessfull"}), 500
+
+
+        
+
+
 

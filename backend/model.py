@@ -39,7 +39,7 @@ class Users(db.Model, UserMixin):
 class Professional(Users):
     __tablename__ = "professional"
     id = db.Column(db.Integer, db.ForeignKey("users.id"), primary_key=True)
-    # service_id = db.Column(db.Integer, db.ForeignKey("service.id"), nullable=False)
+    service_id = db.Column(db.Integer, db.ForeignKey("service.id"), nullable=False)
     date_created = db.Column(db.DateTime, default=datetime.now, nullable=False)
     experience = db.Column(db.Integer, nullable=False)
     file_path = db.Column(db.String, nullable=True)
@@ -78,7 +78,7 @@ class Service(db.Model):
 class ServiceRequest(db.Model):
     __tablename__ = "service_request"
     id = db.Column(db.Integer, primary_key=True)
-    # service_id = db.Column(db.Integer, db.ForeignKey("service.id"), nullable=False)
+    service_id = db.Column(db.Integer, db.ForeignKey("service.id"), nullable=False)
     customer_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     professional_id = db.Column(
         db.Integer, db.ForeignKey("professional.id"), nullable=True

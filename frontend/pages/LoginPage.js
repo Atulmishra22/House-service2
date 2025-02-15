@@ -1,6 +1,6 @@
 export default {
   template: `
-    <div>
+    <div class="container">
       <h2>Login</h2>
       <form @submit.prevent="login">
         <div class="mb-3">
@@ -29,6 +29,7 @@ export default {
 
         <button type="submit" class="btn btn-primary">Login</button>
       </form>
+    </div>
     </div>
   `,
   data() {

@@ -27,7 +27,6 @@ app = createApp()
 
 import backend.initial_data
 from backend.routes import *
-from backend.prof import *
 
 
 if __name__ == "__main__":
