@@ -17,12 +17,5 @@ with app.app_context():
         userdatastore.create_user(
             email="admin@mail.com", name="Admin", password=hash_password("pass"), roles=["admin"]
         )
-    if not userdatastore.find_user(email="user@mail.com"):
-        userdatastore.create_user(
-            email="user@mail.com" , name="Customer", password=hash_password("pass"), roles=["customer"]
-        )
-
-    
-    
     
     db.session.commit()

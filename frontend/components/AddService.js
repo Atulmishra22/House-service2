@@ -31,6 +31,7 @@ export default {
       price: null,
       time_required: null,
       description: null,
+      
     };
   },
   methods: {
@@ -53,9 +54,11 @@ export default {
         if (res.ok) {
           const responseData = await res.json();
           console.log("servcie added sucessfully", responseData);
+          this.$emit('showAlert',responseData.message)
         } else {
-          console.error("failed to add", res);
-          // Handle error (display error messages to user)
+          const errorData = await res.json();
+          console.error("failed to add", errorData);
+          
         }
       } catch (error) {
         console.error("Request failed", error);

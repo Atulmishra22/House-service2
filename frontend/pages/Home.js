@@ -13,7 +13,7 @@ export default {
             />
             </div>
             <div
-            class="col d-flex align-items-center bg-white justify-content-center"
+            class="col d-flex align-items-center justify-content-center"
             >
             <div id="text flex-column">
                 <p class="fw-bold h3 display-4 text-center">

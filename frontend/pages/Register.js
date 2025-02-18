@@ -1,6 +1,7 @@
 export default {
   template: `
-    <div class="container shadow col-sm-5 my-4 p-4">
+    
+    <div class="container shadow col-sm-5 my-2 p-4">
       <h2>Register</h2>
       <form @submit.prevent="register" enctype="multipart/form-data">
         <div class="mb-3">
@@ -89,6 +90,14 @@ export default {
 
         <button type="submit" class="btn btn-primary">Register</button>
       </form>
+      <div v-if="alertBox" class="row justify-content-center">
+      <div class="alert alert-primary alert-dismissible fade col-sm-5 show my-1 shadow" role="alert">
+            <i v-if="circleCheck" class="fa-solid fa-circle-check mx-2"></i> 
+            <i v-if="crossCheck" class="fa-sharp fa-solid fa-circle-xmark mx-2"></i>
+            {{successMessage}}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      </div>
     </div>
     `,
 
@@ -104,6 +113,10 @@ export default {
       pincode: "",
       experience: "",
       file: "",
+      alertBox:false,
+      circleCheck:false,
+      crossCheck:false,
+      successMessage:"",
       services: [],
       roles: [
         { text: "Customer", value: "customer" },
@@ -115,6 +128,7 @@ export default {
     isProfessional() {
       return this.role === "professional"; // Returns true if the role is 'professional'
     },
+    
   },
   methods: {
     handleFile(event) {
@@ -129,9 +143,10 @@ export default {
         if (res.ok) {
           const ser_data = await res.json();
           this.services = ser_data;
+          
         }
       } catch (error) {
-        console.log("services not found", error);
+        console.log(error);
       }
     },
 
@@ -160,11 +175,23 @@ export default {
         if (res.ok) {
           const responseData = await res.json();
           console.log("Regsiter successfully", responseData);
-          // You can handle success (like redirecting, setting user state, etc.)
+          this.alertBox = true;
+          this.circleCheck = true;
+          this.successMessage = responseData.message
+          setTimeout(()=>{
+            this.$router.push('/login')
+            
+          },3000)
+        }else{
+          const errorData = await res.json();
+          console.log(errorData)
+          this.alertBox = true;
+          this.crossCheck = true;
+          this.successMessage = errorData.error;
+
         }
       } catch (error) {
         console.error("Request failed", error);
-        // Handle network or server errors
       }
     },
   },
