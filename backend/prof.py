@@ -75,8 +75,5 @@ class ProfAPI(Resource):
             db.session.rollback()
             return jsonify({"message":"Deletion Unsucessfull"}), 500
 
-
-        
-
-
-
+api.add_resource(ProfAPI,"/professionals/<int:id>")
+api.add_resource(ProfsAPI,"/professionals")

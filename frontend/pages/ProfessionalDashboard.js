@@ -1,7 +1,7 @@
 export default {
-    template: `
+  template: `
     <div>
-        <h1>professional dashbaord<h1>
+        <h1>professional dashbaord</h1>
     </div>
-    `
-}
+    `,
+};

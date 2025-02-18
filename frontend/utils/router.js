@@ -5,8 +5,10 @@ import ProfessionalDashboard from "../pages/ProfessionalDashboard.js";
 import Register from "../pages/Register.js";
 import adminDashboard from "../pages/adminDashboard.js";
 import store from "./store.js";
+import NotFound from "../pages/NotFound.js";
 
 const routes = [
+  { path: "/:pathMatch(.*)*", component: NotFound },
   { path: "/", component: Home },
   { path: "/login", component: LoginPage },
   { path: "/register", component: Register },

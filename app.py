@@ -2,7 +2,7 @@ from flask import Flask
 from backend.config import LocalConfig
 from backend.model import db, Users, Roles
 from flask_security import Security, SQLAlchemyUserDatastore, auth_required
-
+from backend.service import *
 
 def createApp():
     app = Flask(
@@ -14,6 +14,7 @@ def createApp():
     app.config.from_object(LocalConfig)
     # model init
     db.init_app(app)
+    api.init_app(app)
 
     datastore = SQLAlchemyUserDatastore(db, Users, Roles)
     app.security = Security(app, datastore=datastore, register_blueprint=False)
@@ -27,6 +28,7 @@ app = createApp()
 
 import backend.initial_data
 from backend.routes import *
+from backend.prof import *
 
 
 if __name__ == "__main__":

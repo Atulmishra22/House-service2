@@ -1,6 +1,7 @@
 export default {
   template: `
-    <div class="container">
+  <div class="container-fluid">
+    <div class="container shadow col-5 my-5 py-3">
       <h2>Login</h2>
       <form @submit.prevent="login">
         <div class="mb-3">
@@ -30,7 +31,8 @@ export default {
         <button type="submit" class="btn btn-primary">Login</button>
       </form>
     </div>
-    </div>
+  </div>
+    
   `,
   data() {
     return {
