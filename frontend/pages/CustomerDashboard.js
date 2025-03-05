@@ -1,8 +1,21 @@
 export default{
     template: `
     <div>
-        <h1> customer Dashbaord </h1>
+        <h1 ref="dashboard"> customer Dashbaord </h1>
+        
+        
+
+        
     </div>
     
-    `
+    `,
+    data(){
+        return{
+            
+        }
+    },
+    methods:{
+        
+    },
+
 }

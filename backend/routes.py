@@ -87,7 +87,6 @@ def register():
 
         db.session.commit()
         return jsonify({"message": "user created successfully"}), 201
-    except Exception as e:
-        print(e)
+    except:
         db.session.rollback()
         return jsonify({"message": "user creation failed"}), 500

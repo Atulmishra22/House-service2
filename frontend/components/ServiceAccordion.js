@@ -1,6 +1,8 @@
-import ShowService from "./ShowService.js";
+
 export default {
   template: `
+    <div>
+    <div class="service">
     
     <div class="accordion">
         <div class="accordion-item">
@@ -27,8 +29,8 @@ export default {
                         <p >{{service.price}}</p>
                     </div>
                     <div class="col text-center">
-                        <a href="" class="btn btn-secondary m-1">Modify</a>
-                        <a href="" class="btn btn-danger"><i class="fa-solid fa-trash me-1"></i>Delete</a>
+                        <button  class="btn btn-secondary m-1"><i class="fa-solid fa-pen-to-square me-1"></i>Modify</button>
+                        <button @click="deleteService(service.id)" class="btn btn-danger"><i class="fa-solid fa-trash me-1"></i>Delete</button>
                     </div>
                   </div>
             </div>
@@ -73,29 +75,39 @@ export default {
       </div>
     </div>
     </div>
+    </div>
+    </div>
+
     
-    `,
+  `,
+  props :['services'],
   data() {
     return {
-      services: [],
       selectedService:{},
     };
   },
-  created() {
-    this.fetchServices();
-  },
-  components: { ShowService },
   methods: {
     showServiceDetails(service){
       this.selectedService = service;
 
     },
-    async fetchServices() {
+    async deleteService(id) {
       try {
-        const res = await fetch(location.origin + "/api/services");
+        const res = await fetch(location.origin + "/api/services/"+ id ,{
+          method: "DELETE",
+          headers: {
+            Auth: this.$store.state.auth_token,
+          },
+          
+        });
         if (res.ok) {
           const ser_data = await res.json();
-          this.services = ser_data;
+          this.$emit('showAlert',ser_data.message);
+          this.$emit('serviceDeleted', id );
+          
+        }else{
+          const ser_data = await res.json();
+          console.log(ser_data)
         }
       } catch (error) {
         console.log(error);

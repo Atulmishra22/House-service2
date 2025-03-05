@@ -55,6 +55,12 @@ export default {
           const responseData = await res.json();
           console.log("servcie added sucessfully", responseData);
           this.$emit('showAlert',responseData.message)
+          this.$emit('showService')
+          this.name = null;
+          this.price = null;
+          this.time_required=null;
+          this.description= null;
+          
         } else {
           const errorData = await res.json();
           console.error("failed to add", errorData);
@@ -64,5 +70,6 @@ export default {
         console.error("Request failed", error);
       }
     },
+    
   },
 };

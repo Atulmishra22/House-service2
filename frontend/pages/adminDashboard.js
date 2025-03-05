@@ -1,5 +1,7 @@
-import Accordion from "../components/Accordion.js";
+import ServiceAccordion from "../components/ServiceAccordion.js";
 import AddService from "../components/AddService.js";
+import ServiceRequest from "../components/ServiceRequest.js";
+
 export default {
   template: `
     <div class="container-fluid">
@@ -21,7 +23,7 @@ export default {
                             
                         </div>
                         <div class="modal-body">
-                            <AddService @showAlert=showServiceAlert />
+                            <AddService @showAlert=showServiceAlert @showService=refreshService />
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -53,20 +55,50 @@ export default {
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         </div>
-        <div class="container mt-4">
-            <Accordion />
+        <div class="service container-fluid">
+        <h3 class="mt-4 ps-4 bg-warning rounded-1 "> Service </h3>
+        <div class="container mt-2">
+            <ServiceAccordion :services=services @showAlert=showServiceAlert @serviceDeleted=serviceDeleted  />
         </div>
+        </div>
+        <div class="servcie-request container-fluid">
+        <h3 class="mt-4 ps-4 bg-warning rounded-1 "> Service Request </h3>
+        <div class="container mt-2">
+            <ServiceRequest :service_requests=service_requests  />
+        </div>
+        </div>
+        <div class="professional container-fluid">
+        <h3 class="mt-4 ps-4 bg-warning rounded-1 "> Professional </h3>
+        <div class="container mt-2">
+            < />
+        </div>
+        </div>
+        <div class="customer container-fluid">
+        <h3 class="mt-4 ps-4 bg-warning rounded-1 "> Customer </h3>
+        <div class="container my-2">
+            < />
+        </div>
+        </div>
+        <footer>
+        
+        </footer>
         
         
     </div>
 
     `,
-  components: { Accordion, AddService },
+  components: { ServiceAccordion, AddService, ServiceRequest },
   data() {
     return {
       alertBox: false,
       successMessage: "",
+      service_requests: [],
+      services:[],
     };
+  },
+  created() {
+    this.fetchServiceRequests();
+    this.fetchServices();
   },
   methods: {
     showServiceAlert(message) {
@@ -75,6 +107,39 @@ export default {
       setTimeout(() => {
         this.alertBox = false;
       }, 1000);
+    },
+    serviceDeleted(id){
+      this.services = this.services.filter(service => service.id !== id);
+    },
+    refreshService(){
+      this.fetchServices()
+    },
+    async fetchServiceRequests() {
+      try {
+        const res = await fetch(location.origin + "/api/service_requests", {
+          headers: {
+            Auth: this.$store.state.auth_token,
+          },
+        });
+        if (res.ok) {
+          const req_data = await res.json();
+          this.service_requests = req_data;
+          console.log(this.service_requests);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    async fetchServices() {
+      try {
+        const res = await fetch(location.origin + "/api/services");
+        if (res.ok) {
+          const ser_data = await res.json();
+          this.services = ser_data;
+        }
+      } catch (error) {
+        console.log(error);
+      }
     },
   },
 };

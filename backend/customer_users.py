@@ -1,0 +1,83 @@
+from backend.model import db, Users, Professional, Roles
+from flask_security import auth_required, current_user, roles_required
+from flask_restful import Api, Resource, marshal_with, fields
+from flask import jsonify, request, Blueprint
+
+customer_api_bp = Blueprint("customer_api", __name__, url_prefix="/api")
+api = Api(customer_api_bp)
+
+user_fields = {
+    "id": fields.Integer,
+    "email": fields.String,
+    "name": fields.String,
+    "phone": fields.Integer,
+    "address": fields.String,
+    "pincode": fields.Integer,
+}
+
+
+class CustomersAPI(Resource):
+
+    @marshal_with(user_fields)
+    # @auth_required('token')
+    # @roles_required('admin')
+    def get(self):
+        users = Users.query.all()
+        customers = []
+        users.pop(0)
+        for user in users:
+            if user.user_type != "professional":
+                customers.append(user)
+        return customers
+
+
+class CustomerAPI(Resource):
+
+    @marshal_with(user_fields)
+    @auth_required("token")
+    @roles_required(["admin", "customer"])
+    def get(self, id):
+        customer = Users.query.get(id)
+        if not customer:
+            return {"message": "Not Found"}, 404
+        return customer
+
+    @auth_required("token")
+    @roles_required("customer")
+    def put(self, id):
+        customer = Users.query.get(id)
+        if not customer:
+            return {"message": "Not Found"}, 404
+        data = request.get_json()
+        if customer.id == current_user.id:
+            try:
+                customer.email = data.get("email")
+                customer.name = data.get("name")
+                customer.phone = data.get("phone")
+                customer.address = data.get("address")
+                customer.pincode = data.get("pincode")
+
+                db.session.commit()
+                return jsonify({"message": "updated Sucessfully"}), 200
+            except:
+                db.session.rollback()
+                return jsonify({"message": "Updation Unsucessfull"}), 500
+        else:
+            return {"message": "Not Authorised"}
+
+    @auth_required("token")
+    @roles_required(["admin", "customer"])
+    def delete(self, id):
+        customer = Users.query.get(id)
+        if not customer:
+            return {"message": "Not Found"}, 404
+        try:
+            db.session.delete(customer)
+            return jsonify({"message": "Deleted Sucessfully"}), 200
+        except:
+            db.session.rollback()
+            return jsonify({"message": "Deletion Unsucessfull"}), 500
+
+
+api.add_resource(CustomerAPI, "/customers/<int:id>")
+api.add_resource(CustomersAPI, "/customers")

@@ -1,9 +1,11 @@
 from backend.model import db, Service
-from flask_restful import Resource,Api,fields , marshal_with
-from flask_security import auth_required, current_user, roles_required, roles_accepted
-from flask import jsonify, request
+from flask_restful import Resource, fields , marshal_with, Api 
+from flask_security import auth_required, current_user, roles_required
+from flask import request , jsonify, Blueprint
 
-api = Api(prefix="/api")
+service_api_bp = Blueprint('service_api',__name__,url_prefix='/api')
+api = Api(service_api_bp)
+
 
 service_fields = {
     'id': fields.Integer,
@@ -20,7 +22,7 @@ class ServiceApi(Resource):
     def get(self,id):
         ser = Service.query.get(id)
         if not ser:
-            return jsonify({'message':'service not found/ exist'})
+            return jsonify({'message':'service not found or exist'})
         return ser
     
 
@@ -29,7 +31,7 @@ class ServiceApi(Resource):
     def put(self,id):
         ser = Service.query.get(id)
         if not ser:
-            return jsonify({'message':'service not found/ exist'})
+            return jsonify({'message':'service not found or exist'})
         data = request.get_json()
         try:
             ser.name = data.get('name')
@@ -49,14 +51,16 @@ class ServiceApi(Resource):
     def delete(self,id):
         ser = Service.query.get(id)
         if not ser:
-            return jsonify({'message':'service not found/ exist'}), 404
+            return jsonify({'message':'service not found or exist'}), 404
         try:
             db.session.delete(ser)
             db.session.commit()
-            return jsonify({"message":"Deleted Sucessfully"}),200
+            
+            return jsonify({"message":"Deleted Sucessfully"})
         except:
+            
             db.session.rollback()
-            return jsonify({"message":"Deletion Unsucessfull"}), 500
+            return jsonify({"message":"Deletion Unsucessfull"})
             
 class ServicesApi(Resource):
     
@@ -71,16 +75,21 @@ class ServicesApi(Resource):
         data = request.get_json()
         name = data.get('name')
         ser = Service.query.filter_by(name=name).first()
-        if not ser:
-            price = data.get('price')
-            time_required = data.get('time_required')
-            description = data.get('description')
-            service = Service(name=name,price=price,time_required=time_required,description=description)
-            db.session.add(service)
-            db.session.commit()
-            return jsonify({'message':'service aadded sucessfully'})
-        else:
-            return jsonify({'message':'service already exist'})
+        try:
+            if not ser:
+                price = data.get('price')
+                time_required = data.get('time_required')
+                description = data.get('description')
+                service = Service(name=name,price=price,time_required=time_required,description=description)
+                db.session.add(service)
+                db.session.commit()
+                return jsonify({'message':'service created successfully'})
+            else:
+                return jsonify({'message':'service already exist'}) 
+        except:
+            db.session.rollback()
+            return jsonify({'message': 'Internal Server error'})
+
             
         
 

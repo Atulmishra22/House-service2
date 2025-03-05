@@ -1,9 +1,11 @@
 from backend.model import db, Users, Professional, Roles
 from flask_security import auth_required, current_user, roles_required
-from flask_restful import Api, Resource,marshal_with, fields
-from flask import jsonify , request
+from flask_restful import Resource, marshal_with, fields, Api
+from flask import jsonify , request, Blueprint
 
-api = Api(prefix="/api")
+prof_api_bp = Blueprint('prof_api',__name__,url_prefix='/api')
+api = Api(prof_api_bp)
+
 
 prof_fields={
     'id':fields.Integer,
@@ -69,7 +71,7 @@ class ProfAPI(Resource):
         if not prof:
             return {"message": "Not Found"},404
         try:
-            db.session.delete()
+            db.session.delete(prof)
             return jsonify({"message":"Deleted Sucessfully"}),200
         except:
             db.session.rollback()
