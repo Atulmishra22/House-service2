@@ -53,7 +53,6 @@ export default {
         });
         if (res.ok) {
           const responseData = await res.json();
-          console.log("servcie added sucessfully", responseData);
           this.$emit('showAlert',responseData.message)
           this.$emit('showService')
           this.name = null;

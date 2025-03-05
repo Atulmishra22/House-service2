@@ -1,4 +1,4 @@
-from flask import current_app as app, request, jsonify, render_template
+from flask import current_app as app, request, jsonify, render_template, send_from_directory
 from flask_security import auth_required, verify_password, hash_password
 from .model import db, Professional,Roles
 from backend.useful_fun import *
@@ -90,3 +90,5 @@ def register():
     except:
         db.session.rollback()
         return jsonify({"message": "user creation failed"}), 500
+    
+

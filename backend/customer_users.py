@@ -1,7 +1,7 @@
 from backend.model import db, Users, Professional, Roles
-from flask_security import auth_required, current_user, roles_required
+from flask_security import auth_required, current_user, roles_required, roles_accepted
 from flask_restful import Api, Resource, marshal_with, fields
-from flask import jsonify, request, Blueprint
+from flask import jsonify, request, Blueprint, make_response
 
 customer_api_bp = Blueprint("customer_api", __name__, url_prefix="/api")
 api = Api(customer_api_bp)
@@ -13,14 +13,15 @@ user_fields = {
     "phone": fields.Integer,
     "address": fields.String,
     "pincode": fields.Integer,
+    "active": fields.Boolean,
 }
 
 
 class CustomersAPI(Resource):
 
     @marshal_with(user_fields)
-    # @auth_required('token')
-    # @roles_required('admin')
+    @auth_required("token")
+    @roles_required("admin")
     def get(self):
         users = Users.query.all()
         customers = []
@@ -35,7 +36,7 @@ class CustomerAPI(Resource):
 
     @marshal_with(user_fields)
     @auth_required("token")
-    @roles_required(["admin", "customer"])
+    @roles_accepted("admin", "customer")
     def get(self, id):
         customer = Users.query.get(id)
         if not customer:
@@ -58,26 +59,49 @@ class CustomerAPI(Resource):
                 customer.pincode = data.get("pincode")
 
                 db.session.commit()
-                return jsonify({"message": "updated Sucessfully"}), 200
+                return make_response(jsonify({"message": "updated Sucessfully"}), 200)
             except:
                 db.session.rollback()
-                return jsonify({"message": "Updation Unsucessfull"}), 500
+                return make_response(jsonify({"message": "Updation Unsucessfull"}), 500)
         else:
-            return {"message": "Not Authorised"}
+            return {"message": "Not Authorised"}, 401
 
     @auth_required("token")
-    @roles_required(["admin", "customer"])
+    @roles_accepted("admin", "customer")
     def delete(self, id):
         customer = Users.query.get(id)
         if not customer:
             return {"message": "Not Found"}, 404
         try:
             db.session.delete(customer)
-            return jsonify({"message": "Deleted Sucessfully"}), 200
+            db.session.commit()
+            return make_response(jsonify({"message": "Deleted Sucessfully"}), 200)
         except:
             db.session.rollback()
-            return jsonify({"message": "Deletion Unsucessfull"}), 500
+            return make_response(jsonify({"message": "Deletion Unsucessfull"}), 500)
 
 
 api.add_resource(CustomerAPI, "/customers/<int:id>")
 api.add_resource(CustomersAPI, "/customers")
+
+
+class CustomerExtra(Resource):
+
+    def put(self, id):
+        customer = Users.query.get(id)
+        if not customer:
+            return {"message": "Not Found"}, 404
+        data = request.get_json()
+        try:
+            customer.active = data.get("active")
+            db.session.commit()
+            return make_response(
+                jsonify({"message": f"{customer.id} is {data.get('active')}"}), 200
+            )
+
+        except:
+            db.session.rollback()
+            return make_response(jsonify({"message": "something went wrong"}), 500)
+
+
+api.add_resource(CustomerExtra, "/customers/status/<int:id>")

@@ -1,17 +1,25 @@
 import ServiceAccordion from "../components/ServiceAccordion.js";
 import AddService from "../components/AddService.js";
 import ServiceRequest from "../components/ServiceRequest.js";
+import CustomerAccordion from "../components/CustomerAccordion.js";
+import ProfessionalAccordion from "../components/ProfessionalAccordion.js";
 
 export default {
   template: `
     <div class="container-fluid">
         <div class="row">
             <div class="d-flex justify-content-between shadow-lg text-bg-light">
-                <router-link to="/" class="d-block text-decoration-none text-dark p-3 "><i class="fas fa-tachometer-alt me-2"></i> Dashboard </router-link>
-                <a class="d-block btn text-dark p-3" data-bs-toggle="modal" data-bs-target="#profile"><i class="fas fa-file-alt me-2"></i> Profile </a>
+                <div class="link d-flex">
+                <router-link to="/admin-dashboard" class="d-block text-decoration-none text-dark p-3 "><i class="fas fa-tachometer-alt me-2"></i> Dashboard </router-link>
                 <a class="d-block btn  text-dark p-3" data-bs-toggle="modal" data-bs-target="#add-service"><i class="fa-solid fa-file-circle-plus"></i> Add Service </a>
                 <router-link to="/" class="d-block text-decoration-none text-dark p-3"><i class="fas fa-rocket me-2"></i> Summary </router-link>
-            
+                </div>
+                <div class="searchbar">
+                <form class="d-flex" role="search">
+                <input class="form-control m-2" v-model="searchQuery" type="search" @input="search" id="searchbar" placeholder="Search">
+                <button class="btn btn-primary my-2" @click="search" type="submit">Search</button>
+                </form>
+                </div>
             </div>
 
             <div>
@@ -23,7 +31,7 @@ export default {
                             
                         </div>
                         <div class="modal-body">
-                            <AddService @showAlert=showServiceAlert @showService=refreshService />
+                            <AddService @showAlert=showAlert @showService=refreshService />
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -58,7 +66,7 @@ export default {
         <div class="service container-fluid">
         <h3 class="mt-4 ps-4 bg-warning rounded-1 "> Service </h3>
         <div class="container mt-2">
-            <ServiceAccordion :services=services @showAlert=showServiceAlert @serviceDeleted=serviceDeleted  />
+            <ServiceAccordion :services=filteredServices @showAlert=showAlert @serviceDeleted=serviceDeleted @refreshService=refreshService  />
         </div>
         </div>
         <div class="servcie-request container-fluid">
@@ -70,13 +78,13 @@ export default {
         <div class="professional container-fluid">
         <h3 class="mt-4 ps-4 bg-warning rounded-1 "> Professional </h3>
         <div class="container mt-2">
-            < />
+            <ProfessionalAccordion :professionals=professionals @showAlert=showAlert @professionalDeleted=professionalDeleted @refreshProfessional=refreshProfessional />
         </div>
         </div>
         <div class="customer container-fluid">
         <h3 class="mt-4 ps-4 bg-warning rounded-1 "> Customer </h3>
         <div class="container my-2">
-            < />
+            <CustomerAccordion :customers=customers @showAlert=showAlert @customerDeleted=customerDeleted @refreshCustomer=refreshCustomer />
         </div>
         </div>
         <footer>
@@ -87,32 +95,56 @@ export default {
     </div>
 
     `,
-  components: { ServiceAccordion, AddService, ServiceRequest },
+  components: {
+    ServiceAccordion,
+    AddService,
+    ServiceRequest,
+    CustomerAccordion,
+    ProfessionalAccordion,
+  },
   data() {
     return {
       alertBox: false,
       successMessage: "",
       service_requests: [],
-      services:[],
+      services: [],
+      customers: [],
+      professionals:[],
+      searchQuery:'',
+      filteredServices:[],
     };
   },
   created() {
     this.fetchServiceRequests();
     this.fetchServices();
+    this.fetchCustomers();
+    this.fetchProfessionals();
   },
   methods: {
-    showServiceAlert(message) {
+    showAlert(message) {
       this.alertBox = true;
       this.successMessage = message;
       setTimeout(() => {
         this.alertBox = false;
-      }, 1000);
+      }, 2000);
     },
-    serviceDeleted(id){
-      this.services = this.services.filter(service => service.id !== id);
+    serviceDeleted(id) {
+      this.services = this.services.filter((service) => service.id !== id);
     },
-    refreshService(){
-      this.fetchServices()
+    customerDeleted(id) {
+      this.customers = this.customers.filter((customer) => customer.id !== id);
+    },
+    professionalDeleted(id) {
+      this.professionals = this.professionals.filter((professional) => professional.id !== id);
+    },
+    refreshService() {
+      this.fetchServices();
+    },
+    refreshProfessional() {
+      this.fetchProfessionals();
+    },
+    refreshCustomer() {
+      this.fetchCustomers();
     },
     async fetchServiceRequests() {
       try {
@@ -124,7 +156,6 @@ export default {
         if (res.ok) {
           const req_data = await res.json();
           this.service_requests = req_data;
-          console.log(this.service_requests);
         }
       } catch (error) {
         console.log(error);
@@ -136,10 +167,56 @@ export default {
         if (res.ok) {
           const ser_data = await res.json();
           this.services = ser_data;
+          this.filteredServices = this.services;
         }
       } catch (error) {
         console.log(error);
       }
+    },
+    async fetchCustomers() {
+      try {
+        const res = await fetch(location.origin + "/api/customers", {
+          headers: {
+            Auth: this.$store.state.auth_token
+          },
+        });
+        if (res.ok) {
+          const customer_data = await res.json();
+          this.customers = customer_data;
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    async fetchProfessionals() {
+      try {
+        const res = await fetch(location.origin + "/api/professionals", {
+          headers: {
+            Auth: this.$store.state.auth_token
+          },
+        });
+        if (res.ok) {
+          const professional_data = await res.json();
+          this.professionals = professional_data;
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    search() {
+      const query = this.searchQuery.toLowerCase(); // Make the query case-insensitive
+
+      if(query === ''){
+        this.filteredServices=this.services
+      }
+      // Filter services based on name or description
+      this.filteredServices = this.services.filter(service => 
+        service.name.toLowerCase().includes(query) ||
+        service.description.toLowerCase().includes(query) ||
+        service.price == (query)
+        
+      );
+      
     },
   },
 };

@@ -24,7 +24,7 @@ export default {
               <div v-else class="accordion-body">
                     <div v-for="service_request in service_requests" :key="service_request.id" class="conatiner row border border-primary p-1 lead rounded mb-1">
                       <div class="col text-center">
-                          <button data-bs-toggle="modal" data-bs-target="#serviceDetail" class="fw-bold btn btn-outline-info" :value="service_request.id" @click="showRequestDetails(service_request)" >{{service_request.id}}</button>
+                          <button data-bs-toggle="modal" data-bs-target="#service-requestDetail" class="fw-bold btn btn-outline-info" :value="service_request.id" @click="showRequestDetails(service_request)" >{{service_request.id}}</button>
                       </div>
                       <div class="col text-center">
                           <p >{{service_request.customer_id}}</p>
@@ -43,7 +43,7 @@ export default {
               </div>
               </div>
           </div>
-          <div class="modal fade" id="serviceDetail" tabindex="-1" >
+          <div class="modal fade" id="service-requestDetail" tabindex="-1" >
             <div class="modal-dialog modal-dialog-centered">
               <div class="modal-content">
                 <div class="modal-header">
@@ -59,16 +59,32 @@ export default {
                     <table class="table border border-primary">
                     <tbody>
                       <tr>
-                        <th> service ID:</th>
+                        <th> Request ID:</th>
                         <td>{{ selectedRequest.id }}</td>
                       </tr>
                       <tr>
-                        <th> Price:</th>
+                        <th> Professional Name:</th>
                         <td>{{ selectedRequest.professional_id }}</td>
                       </tr>
                       <tr>
-                        <th> description:</th>
+                        <th> Request Date:</th>
                         <td>{{ selectedRequest.date_of_request }}</td>
+                      </tr>
+                      <tr>
+                        <th> completion Date:</th>
+                        <td>{{ selectedRequest.date_of_completion }}</td>
+                      </tr>
+                      <tr>
+                        <th> Service status:</th>
+                        <td>{{ selectedRequest.service_type }}</td>
+                      </tr>
+                      <tr>
+                        <th> Remarks:</th>
+                        <td>{{ selectedRequest.remarks }}</td>
+                      </tr>
+                      <tr>
+                        <th> Ratings:</th>
+                        <td>{{ selectedRequest.rating }}</td>
                       </tr>
                     </tbody>
                     </table>

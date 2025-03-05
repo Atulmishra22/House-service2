@@ -1,7 +1,7 @@
 
 export default {
   template: `
-    <div>
+    
     <div class="service">
     
     <div class="accordion">
@@ -29,11 +29,49 @@ export default {
                         <p >{{service.price}}</p>
                     </div>
                     <div class="col text-center">
-                        <button  class="btn btn-secondary m-1"><i class="fa-solid fa-pen-to-square me-1"></i>Modify</button>
+                        <button  class="btn btn-secondary m-1" data-bs-toggle="modal" data-bs-target="#modify-service" @click="showServiceDetails(service)"><i class="fa-solid fa-pen-to-square me-1"></i>Modify</button>
                         <button @click="deleteService(service.id)" class="btn btn-danger"><i class="fa-solid fa-trash me-1"></i>Delete</button>
                     </div>
                   </div>
             </div>
+            </div>
+        </div>
+        <div>
+        <div class="modal fade" id="modify-service" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Modify Service</h1>
+                    
+                </div>
+                <div class="modal-body">
+                <div class="container">
+                  <form @submit.prevent="">
+                      <div class="mb-3">
+                      <label for="service-name" class="form-label">Service Name:</label>
+                      <input type="text" class="form-control" v-model="selectedService.name" id="service-name"  required />
+                      </div>
+                      <div class="mb-3">
+                      <label for="price" class="form-label">Price:</label>
+                      <input type="number" class="form-control" v-model="selectedService.price" id="price"  required />
+                      </div>
+                      <div class="mb-3">
+                      <label for="time" class="form-label">Time Required:</label>
+                      <input type="number" class="form-control" v-model="selectedService.time_required" id="time"  required />
+                      </div>
+                      <div class="mb-3">
+                      <label for="description" class="form-label">Description:</label>
+                      <input type="text" class="form-control" v-model="selectedService.description" id="description"  required />
+                      </div>
+                      
+                      <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Submit</button>
+                  </form>
+                </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+                </div>
             </div>
         </div>
         <div class="modal fade" id="serviceDetail" tabindex="-1" >
@@ -60,6 +98,10 @@ export default {
                       <td>{{ selectedService.price }}</td>
                     </tr>
                     <tr>
+                      <th> Time Required:</th>
+                      <td>{{ selectedService.time_required }}</td>
+                    </tr>
+                    <tr>
                       <th> description:</th>
                       <td>{{ selectedService.description }}</td>
                     </tr>
@@ -77,7 +119,6 @@ export default {
     </div>
     </div>
     </div>
-
     
   `,
   props :['services'],
@@ -96,14 +137,40 @@ export default {
         const res = await fetch(location.origin + "/api/services/"+ id ,{
           method: "DELETE",
           headers: {
+            
             Auth: this.$store.state.auth_token,
           },
           
         });
         if (res.ok) {
           const ser_data = await res.json();
+          
           this.$emit('showAlert',ser_data.message);
           this.$emit('serviceDeleted', id );
+          
+        }else{
+          const ser_data = await res.json();
+          console.log(ser_data)
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    async modifyService(id) {
+      try {
+        const res = await fetch(location.origin + "/api/services/"+ id ,{
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Auth: this.$store.state.auth_token,
+          },
+          body: JSON.stringify(data),
+        });
+        if (res.ok) {
+          const ser_data = await res.json();
+          
+          this.$emit('showAlert',ser_data.message);
+          this.$emit('refreshService');
           
         }else{
           const ser_data = await res.json();

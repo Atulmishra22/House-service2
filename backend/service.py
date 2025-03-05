@@ -1,7 +1,7 @@
 from backend.model import db, Service
 from flask_restful import Resource, fields , marshal_with, Api 
-from flask_security import auth_required, current_user, roles_required
-from flask import request , jsonify, Blueprint
+from flask_security import auth_required, current_user, roles_required, roles_accepted
+from flask import request , jsonify, Blueprint, make_response
 
 service_api_bp = Blueprint('service_api',__name__,url_prefix='/api')
 api = Api(service_api_bp)
@@ -22,7 +22,7 @@ class ServiceApi(Resource):
     def get(self,id):
         ser = Service.query.get(id)
         if not ser:
-            return jsonify({'message':'service not found or exist'})
+            return make_response(jsonify({'message':'service not found or exist'}),404)
         return ser
     
 
@@ -40,10 +40,10 @@ class ServiceApi(Resource):
             ser.description = data.get('description')
 
             db.session.commit()
-            return jsonify({'message':'service updated sucessfully'}),200
+            return make_response(jsonify({'message':'service updated sucessfully'}),200)
         except:
             db.session.rollback()
-            return jsonify({'message':'service not updated'}), 500
+            return make_response(jsonify({'message':'service not updated'}), 500)
     
 
     @auth_required('token')
@@ -51,16 +51,16 @@ class ServiceApi(Resource):
     def delete(self,id):
         ser = Service.query.get(id)
         if not ser:
-            return jsonify({'message':'service not found or exist'}), 404
+            return make_response(jsonify({'message':'service not found or exist'}), 404)
         try:
             db.session.delete(ser)
             db.session.commit()
             
-            return jsonify({"message":"Deleted Sucessfully"})
+            return make_response(jsonify({"message":"Deleted Sucessfully"}),200)
         except:
             
             db.session.rollback()
-            return jsonify({"message":"Deletion Unsucessfull"})
+            return make_response(jsonify({"message":"Deletion Unsucessfull"}),500)
             
 class ServicesApi(Resource):
     
@@ -83,12 +83,12 @@ class ServicesApi(Resource):
                 service = Service(name=name,price=price,time_required=time_required,description=description)
                 db.session.add(service)
                 db.session.commit()
-                return jsonify({'message':'service created successfully'})
+                return make_response(jsonify({'message':'service created successfully'}),201)
             else:
-                return jsonify({'message':'service already exist'}) 
+                return make_response(jsonify({'message':'service already exist'}),409 )
         except:
             db.session.rollback()
-            return jsonify({'message': 'Internal Server error'})
+            return make_response(jsonify({'message': 'Internal Server error'}),500)
 
             
         
