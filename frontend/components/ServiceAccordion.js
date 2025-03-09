@@ -46,7 +46,7 @@ export default {
                 </div>
                 <div class="modal-body">
                 <div class="container">
-                  <form @submit.prevent="">
+                  <form @submit.prevent="modifyService(selectedService.id)">
                       <div class="mb-3">
                       <label for="service-name" class="form-label">Service Name:</label>
                       <input type="text" class="form-control" v-model="selectedService.name" id="service-name"  required />
@@ -146,7 +146,7 @@ export default {
           const ser_data = await res.json();
           
           this.$emit('showAlert',ser_data.message);
-          this.$emit('serviceDeleted', id );
+          this.$emit('serviceDeleted');
           
         }else{
           const ser_data = await res.json();
@@ -164,7 +164,7 @@ export default {
             "Content-Type": "application/json",
             Auth: this.$store.state.auth_token,
           },
-          body: JSON.stringify(data),
+          body: JSON.stringify(this.selectedService),
         });
         if (res.ok) {
           const ser_data = await res.json();

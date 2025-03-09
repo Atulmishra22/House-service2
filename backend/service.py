@@ -1,98 +1,120 @@
 from backend.model import db, Service
-from flask_restful import Resource, fields , marshal_with, Api 
+from flask_restful import Resource, fields, marshal_with, Api
 from flask_security import auth_required, current_user, roles_required, roles_accepted
-from flask import request , jsonify, Blueprint, make_response
+from flask import request, jsonify, Blueprint, make_response
 
-service_api_bp = Blueprint('service_api',__name__,url_prefix='/api')
+service_api_bp = Blueprint("service_api", __name__, url_prefix="/api")
 api = Api(service_api_bp)
 
 
 service_fields = {
-    'id': fields.Integer,
-    "name":fields.String,
-    "price":fields.Integer,
-    "description":fields.String,
-    'time_required':fields.Integer
+    "id": fields.Integer,
+    "name": fields.String,
+    "price": fields.Integer,
+    "description": fields.String,
+    "time_required": fields.Integer,
 }
+
 
 class ServiceApi(Resource):
 
-    @auth_required('token')
+    @auth_required("token")
     @marshal_with(service_fields)
-    def get(self,id):
+    def get(self, id):
         ser = Service.query.get(id)
         if not ser:
-            return make_response(jsonify({'message':'service not found or exist'}),404)
+            return make_response(
+                jsonify({"message": "service not found or exist"}), 404
+            )
         return ser
-    
 
-    @auth_required('token')
-    @roles_required('admin')
-    def put(self,id):
+    @auth_required("token")
+    @roles_required("admin")
+    def put(self, id):
         ser = Service.query.get(id)
         if not ser:
-            return jsonify({'message':'service not found or exist'})
+            return jsonify({"message": "service not found or exist"})
         data = request.get_json()
         try:
-            ser.name = data.get('name')
-            ser.price = data.get('price')
-            ser.time_required = data.get('time_required')
-            ser.description = data.get('description')
+            ser.name = data.get("name")
+            ser.price = data.get("price")
+            ser.time_required = data.get("time_required")
+            ser.description = data.get("description")
 
             db.session.commit()
-            return make_response(jsonify({'message':'service updated sucessfully'}),200)
+            return make_response(
+                jsonify({"message": "service updated sucessfully"}), 200
+            )
         except:
             db.session.rollback()
-            return make_response(jsonify({'message':'service not updated'}), 500)
-    
+            return make_response(jsonify({"message": "service not updated"}), 500)
 
-    @auth_required('token')
-    @roles_required('admin')
-    def delete(self,id):
+    @auth_required("token")
+    @roles_required("admin")
+    def delete(self, id):
         ser = Service.query.get(id)
         if not ser:
-            return make_response(jsonify({'message':'service not found or exist'}), 404)
+            return make_response(
+                jsonify({"message": "service not found or exist"}), 404
+            )
         try:
             db.session.delete(ser)
             db.session.commit()
-            
-            return make_response(jsonify({"message":"Deleted Sucessfully"}),200)
+
+            return make_response(jsonify({"message": "Deleted Sucessfully"}), 200)
         except:
-            
+
             db.session.rollback()
-            return make_response(jsonify({"message":"Deletion Unsucessfull"}),500)
-            
+            return make_response(jsonify({"message": "Deletion Unsucessfull"}), 500)
+
+
 class ServicesApi(Resource):
-    
+
     @marshal_with(service_fields)
     def get(self):
         sers = Service.query.all()
         return sers
-    
-    @auth_required('token')
-    @roles_required('admin')
+
+    @auth_required("token")
+    @roles_required("admin")
     def post(self):
         data = request.get_json()
-        name = data.get('name')
+        name = data.get("name")
         ser = Service.query.filter_by(name=name).first()
         try:
             if not ser:
-                price = data.get('price')
-                time_required = data.get('time_required')
-                description = data.get('description')
-                service = Service(name=name,price=price,time_required=time_required,description=description)
+                price = data.get("price")
+                time_required = data.get("time_required")
+                description = data.get("description")
+                service = Service(
+                    name=name,
+                    price=price,
+                    time_required=time_required,
+                    description=description,
+                )
                 db.session.add(service)
                 db.session.commit()
-                return make_response(jsonify({'message':'service created successfully'}),201)
+                return make_response(
+                    jsonify({"message": "service created successfully"}), 201
+                )
             else:
-                return make_response(jsonify({'message':'service already exist'}),409 )
+                return make_response(jsonify({"message": "service already exist"}), 409)
         except:
             db.session.rollback()
-            return make_response(jsonify({'message': 'Internal Server error'}),500)
+            return make_response(jsonify({"message": "Internal Server error"}), 500)
 
-            
-        
 
-    
-api.add_resource(ServiceApi,"/services/<int:id>")
-api.add_resource(ServicesApi,"/services")
+api.add_resource(ServiceApi, "/services/<int:id>")
+api.add_resource(ServicesApi, "/services")
+
+
+class ServiceProfessional(Resource):
+
+    @marshal_with(service_fields)
+    @auth_required("token")
+    def get(self):
+        services_with_professional = Service.query.filter(Service.professional).all()
+        return services_with_professional
+
+
+api.add_resource(ServiceProfessional, "/services/professional")

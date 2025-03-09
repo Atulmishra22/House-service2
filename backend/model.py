@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from flask_security import UserMixin, RoleMixin
+from sqlalchemy import func
 
 db = SQLAlchemy()
 
@@ -47,6 +48,14 @@ class Professional(Users):
         "polymorphic_identity": "professional",  # For professional users
     }
 
+    def total_rating(self):
+        total = (
+            db.session.query(func.sum(ServiceRequest.rating))
+            .filter(ServiceRequest.professional_id == self.id)
+            .scalar()
+        )
+        return total if total is not None else 0
+
 
 class Roles(db.Model, RoleMixin):
     __tablename__ = "roles"
@@ -72,7 +81,9 @@ class Service(db.Model):
     service_requests = db.relationship(
         "ServiceRequest", backref="service", lazy=True, cascade="all, delete-orphan"
     )
-    professional = db.relationship("Professional", backref="service", lazy=True,cascade="all, delete-orphan")
+    professional = db.relationship(
+        "Professional", backref="service", lazy=True, cascade="all, delete-orphan"
+    )
 
 
 class ServiceRequest(db.Model):

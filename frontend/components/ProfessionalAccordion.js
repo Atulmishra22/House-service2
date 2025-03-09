@@ -1,6 +1,6 @@
 export default {
-    props: ["professionals"],
-    template: `
+  props: ["professionals"],
+  template: `
         <div>
         <div class="prof-accordion">
         
@@ -79,6 +79,10 @@ export default {
                           <td>{{ selectedProfessional.phone}}</td>
                         </tr>
                         <tr>
+                          <th> File name:</th>
+                          <td>{{ selectedProfessional.file_name}}</td>
+                        </tr>
+                        <tr>
                           <th> Service:</th>
                           <td>{{ selectedProfessional.service_name}}</td>
                         </tr>
@@ -102,6 +106,7 @@ export default {
                       </table>
                       <div class="row">
                         <embed :src="file_url" height="250" type="application/pdf">
+                        
                       </div>
                       </div>
                     </div>
@@ -118,68 +123,68 @@ export default {
     
         
         `,
-    data() {
-      return {
-        selectedProfessional: {},
-        
-        file_url: "",
-      };
+  data() {
+    return {
+      selectedProfessional: {},
+
+      file_url: "",
+    };
+  },
+
+  methods: {
+    showProfessionalDetails(professional) {
+      this.selectedProfessional = professional;
+      this.file_url =
+        location.origin + `/api/verification/${professional.file_name}`;
     },
-  
-    methods: {
-      showProfessionalDetails(professional) {
-        this.selectedProfessional = professional;
-        this.file_url = location.origin + `/api/verification/${professional.file_name}`
-      },
-      async deleteProfessional(id) {
-        try {
-          const res = await fetch(location.origin + "/api/professionals/" + id, {
-            method: "DELETE",
-            headers: {
-              Auth: this.$store.state.auth_token,
-            },
-          });
-          if (res.ok) {
-            const ser_data = await res.json();
-            this.$emit("showAlert", ser_data.message);
-            this.$emit("professionalDeleted", id);
-          } else {
-            const ser_data = await res.json();
-            console.log(ser_data);
-          }
-        } catch (error) {
-          console.log(error);
+    async deleteProfessional(id) {
+      try {
+        const res = await fetch(location.origin + "/api/professionals/" + id, {
+          method: "DELETE",
+          headers: {
+            Auth: this.$store.state.auth_token,
+          },
+        });
+        if (res.ok) {
+          const ser_data = await res.json();
+          this.$emit("showAlert", ser_data.message);
+          this.$emit("professionalDeleted");
+        } else {
+          const ser_data = await res.json();
+          console.log(ser_data);
         }
-      },
-      async professionalStatus(id,status){
-        const data = {
-          active:status
-        }
-        try {
-          const res = await fetch(location.origin + `/api/professionals/status/${id}`, {
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    async professionalStatus(id, status) {
+      const data = {
+        active: status,
+      };
+      try {
+        const res = await fetch(
+          location.origin + `/api/professionals/status/${id}`,
+          {
             method: "PUT",
             headers: {
               Auth: this.$store.state.auth_token,
               "Content-Type": "application/json",
             },
             body: JSON.stringify(data),
-          });
-          if (res.ok) {
-            const responseData = await res.json();
-
-            this.$emit('showAlert',responseData.message)
-            this.$emit('refreshProfessional')
-            
-          } else {
-            const errorData = await res.json();
-            console.error("failed to add", errorData);
-            
           }
-        } catch (error) {
-          console.error("Request failed", error);
-        }
+        );
+        if (res.ok) {
+          const responseData = await res.json();
 
-      },
+          this.$emit("showAlert", responseData.message);
+          this.$emit("refreshProfessional");
+        } else {
+          const errorData = await res.json();
+          console.error("failed to add", errorData);
+        }
+      } catch (error) {
+        console.error("Request failed", error);
+      }
     },
-  };
-  
+  },
+};

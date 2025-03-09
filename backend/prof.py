@@ -32,25 +32,27 @@ class ProfsAPI(Resource):
     @roles_required("admin")
     def get(self):
         profs = Professional.query.all()
+        if not profs:
+            return {"message": "Not Found"}, 404
         professionals = []
         for prof in profs:
-            professionals.append(
-                {
-                    "id": prof.id,
-                    "name": prof.name,
-                    "email": prof.email,
-                    "phone": prof.phone,
-                    "active": prof.active,
-                    "address": prof.address,
-                    "pincode": prof.pincode,
-                    "service_id": prof.service_id,
-                    "service_name": prof.service.name,
-                    "experience": prof.experience,
-                    "file_path": prof.file_path,
-                    "file_name": os.path.basename(prof.file_path),
-                    "date_created": formatTime(prof.date_created),
-                }
-            )
+            professional = {
+                "id": prof.id,
+                "name": prof.name,
+                "email": prof.email,
+                "phone": prof.phone,
+                "active": prof.active,
+                "address": prof.address,
+                "pincode": prof.pincode,
+                "service_id": prof.service_id,
+                "service_name": prof.service.name,
+                "experience": prof.experience,
+                "file_path": prof.file_path,
+                "file_name": os.path.basename(prof.file_path),
+                "date_created": formatTime(prof.date_created),
+            }
+
+            professionals.append(professional)
         return professionals
 
 
@@ -110,8 +112,6 @@ api.add_resource(ProfsAPI, "/professionals")
 
 class professionalFile(Resource):
 
-    @auth_required("token")
-    @roles_accepted("admin")
     def get(self, filename):
         try:
             return send_from_directory("professional_verification", filename)
@@ -137,3 +137,30 @@ class professionalFile(Resource):
 api.add_resource(
     professionalFile, "/verification/<filename>", "/professionals/status/<int:id>"
 )
+
+
+class ProfessionalService(Resource):
+
+    def get(self, id):
+        profs = Professional.query.filter_by(service_id=id)
+        if not profs:
+            return {"message": "Not Found"}, 404
+        professionals = []
+        for prof in profs:
+            professionals.append(
+                {
+                    "id": prof.id,
+                    "name": prof.name,
+                    "email": prof.email,
+                    "phone": prof.phone,
+                    "address": prof.address,
+                    "pincode": prof.pincode,
+                    "service_id": prof.service_id,
+                    "service_name": prof.service.name,
+                    "rating": prof.total_rating(),
+                }
+            )
+        return professionals
+
+
+api.add_resource(ProfessionalService, "/professionals/service/<int:id>")

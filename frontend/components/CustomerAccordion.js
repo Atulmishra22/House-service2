@@ -128,7 +128,7 @@ export default {
         if (res.ok) {
           const ser_data = await res.json();
           this.$emit("showAlert", ser_data.message);
-          this.$emit("customerDeleted", id);
+          this.$emit("customerDeleted");
         } else {
           const ser_data = await res.json();
           console.log(ser_data);

@@ -27,16 +27,16 @@ export default {
                           <button data-bs-toggle="modal" data-bs-target="#service-requestDetail" class="fw-bold btn btn-outline-info" :value="service_request.id" @click="showRequestDetails(service_request)" >{{service_request.id}}</button>
                       </div>
                       <div class="col text-center">
-                          <p >{{service_request.customer_id}}</p>
+                          <p >{{service_request.customer_name}}</p>
                       </div>
                       <div class="col text-center">
-                          <p >{{service_request.professional_id}}</p>
+                          <p >{{service_request.professional_name}}</p>
                       </div>
                       <div class="col text-center">
-                          <p >{{service_request.service_id}}</p>
+                          <p >{{service_request.service_name}}</p>
                       </div>
                       <div class="col text-center">
-                          <p >{{service_request.service_status}}</p>
+                          <p >{{service_request.service_status.toUpperCase() }}</p>
                       </div>
                       
                     </div>
@@ -53,7 +53,7 @@ export default {
                 <div class="modal-body">
                   <div class="card shadow">
                     <div class="card-header text-center">
-                      {{selectedRequest.customer_id}}
+                      {{selectedRequest.customer_name}}
                     </div>
                     <div class="card-body">
                     <table class="table border border-primary">
@@ -64,7 +64,7 @@ export default {
                       </tr>
                       <tr>
                         <th> Professional Name:</th>
-                        <td>{{ selectedRequest.professional_id }}</td>
+                        <td>{{ selectedRequest.professional_name }}</td>
                       </tr>
                       <tr>
                         <th> Request Date:</th>
@@ -76,7 +76,7 @@ export default {
                       </tr>
                       <tr>
                         <th> Service status:</th>
-                        <td>{{ selectedRequest.service_type }}</td>
+                        <td>{{ selectedRequest.service_name }}</td>
                       </tr>
                       <tr>
                         <th> Remarks:</th>

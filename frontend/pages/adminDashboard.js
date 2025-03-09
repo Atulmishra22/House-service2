@@ -39,22 +39,7 @@ export default {
                         </div>
                     </div>
                 </div>
-                <div class="modal fade" id="profile" tabindex="-1">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                        <div class="modal-header">
-                            <h1 class="modal-title fs-5">Profile</h1>
-                            
-                        </div>
-                        <div class="modal-body">
-                            
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        </div>
-                        </div>
-                    </div>
-                </div>
+                
             </div>
         </div>
         <div v-if="alertBox" class="container-fluid row justify-content-end">
@@ -72,19 +57,19 @@ export default {
         <div class="servcie-request container-fluid">
         <h3 class="mt-4 ps-4 bg-warning rounded-1 "> Service Request </h3>
         <div class="container mt-2">
-            <ServiceRequest :service_requests=service_requests  />
+            <ServiceRequest :service_requests=filteredServiceRequests  />
         </div>
         </div>
         <div class="professional container-fluid">
         <h3 class="mt-4 ps-4 bg-warning rounded-1 "> Professional </h3>
         <div class="container mt-2">
-            <ProfessionalAccordion :professionals=professionals @showAlert=showAlert @professionalDeleted=professionalDeleted @refreshProfessional=refreshProfessional />
+            <ProfessionalAccordion :professionals=filteredProfessionals @showAlert=showAlert @professionalDeleted=professionalDeleted @refreshProfessional=refreshProfessional />
         </div>
         </div>
         <div class="customer container-fluid">
         <h3 class="mt-4 ps-4 bg-warning rounded-1 "> Customer </h3>
         <div class="container my-2">
-            <CustomerAccordion :customers=customers @showAlert=showAlert @customerDeleted=customerDeleted @refreshCustomer=refreshCustomer />
+            <CustomerAccordion :customers=filteredCutsomers @showAlert=showAlert @customerDeleted=customerDeleted @refreshCustomer=refreshCustomer />
         </div>
         </div>
         <footer>
@@ -112,6 +97,9 @@ export default {
       professionals:[],
       searchQuery:'',
       filteredServices:[],
+      filteredCutsomers:[],
+      filteredProfessionals:[],
+      filteredServiceRequests:[],
     };
   },
   created() {
@@ -119,6 +107,7 @@ export default {
     this.fetchServices();
     this.fetchCustomers();
     this.fetchProfessionals();
+    
   },
   methods: {
     showAlert(message) {
@@ -128,14 +117,18 @@ export default {
         this.alertBox = false;
       }, 2000);
     },
-    serviceDeleted(id) {
-      this.services = this.services.filter((service) => service.id !== id);
+    serviceDeleted() {
+      this.fetchServices();
+      this.fetchProfessionals();
+      this.fetchServiceRequests();
     },
-    customerDeleted(id) {
-      this.customers = this.customers.filter((customer) => customer.id !== id);
+    customerDeleted() {
+      this.fetchCustomers();
+      this.fetchServiceRequests();
     },
-    professionalDeleted(id) {
-      this.professionals = this.professionals.filter((professional) => professional.id !== id);
+    professionalDeleted() {
+      this.fetchProfessionals();
+      this.fetchServiceRequests();
     },
     refreshService() {
       this.fetchServices();
@@ -156,6 +149,7 @@ export default {
         if (res.ok) {
           const req_data = await res.json();
           this.service_requests = req_data;
+          this.filteredServiceRequests = this.service_requests;
         }
       } catch (error) {
         console.log(error);
@@ -183,6 +177,7 @@ export default {
         if (res.ok) {
           const customer_data = await res.json();
           this.customers = customer_data;
+          this.filteredCutsomers = this.customers;
         }
       } catch (error) {
         console.log(error);
@@ -198,6 +193,7 @@ export default {
         if (res.ok) {
           const professional_data = await res.json();
           this.professionals = professional_data;
+          this.filteredProfessionals = this.professionals;
         }
       } catch (error) {
         console.log(error);
@@ -207,15 +203,35 @@ export default {
       const query = this.searchQuery.toLowerCase(); // Make the query case-insensitive
 
       if(query === ''){
-        this.filteredServices=this.services
+        this.filteredServices=this.services;
+        this.filteredServiceRequests=this.service_requests;
+        this.filteredCutsomers=this.customers;
+        this.filteredProfessionals=this.professionals;
+        
       }
-      // Filter services based on name or description
       this.filteredServices = this.services.filter(service => 
         service.name.toLowerCase().includes(query) ||
         service.description.toLowerCase().includes(query) ||
-        service.price == (query)
+        service.price.toString().includes(query)        
+      );
+      this.filteredServiceRequests = this.service_requests.filter(service_request => 
+        service_request.service_name.toLowerCase().includes(query) ||
+        service_request.customer_name.toLowerCase().includes(query) ||
+        service_request.professional_name.toLowerCase().includes(query)
         
       );
+      this.filteredCutsomers = this.customers.filter(customer => 
+        customer.name.toLowerCase().includes(query) ||
+        customer.address.toLowerCase().includes(query) ||
+        customer.pincode.toString().includes(query)        
+      );
+      this.filteredProfessionals = this.professionals.filter(professional => 
+        professional.name.toLowerCase().includes(query) ||
+        professional.service_name.toLowerCase().includes(query) ||
+        professional.address.toLowerCase().includes(query) ||
+        professional.pincode.toString().includes(query)        
+      );
+      
       
     },
   },

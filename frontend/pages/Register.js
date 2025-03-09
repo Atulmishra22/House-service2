@@ -91,7 +91,7 @@ export default {
         <button type="submit" class="btn btn-primary">Register</button>
       </form>
       <div v-if="alertBox" class="row justify-content-center">
-      <div class="alert alert-primary alert-dismissible fade col-sm-5 show my-1 shadow" role="alert">
+      <div class="alert alert-primary alert-dismissible fade col-sm-5 col-xl-7 show my-1 shadow" role="alert">
             <i v-if="circleCheck" class="fa-solid fa-circle-check mx-2"></i> 
             <i v-if="crossCheck" class="fa-sharp fa-solid fa-circle-xmark mx-2"></i>
             {{successMessage}}
@@ -126,7 +126,7 @@ export default {
   },
   computed: {
     isProfessional() {
-      return this.role === "professional"; // Returns true if the role is 'professional'
+      return this.role === "professional"; 
     },
     
   },
@@ -181,7 +181,7 @@ export default {
           setTimeout(()=>{
             this.$router.push('/login')
             
-          },3000)
+          },2000)
         }else{
           const errorData = await res.json();
           console.log(errorData)

@@ -14,6 +14,7 @@ user_fields = {
     "address": fields.String,
     "pincode": fields.Integer,
     "active": fields.Boolean,
+    "user_type": fields.String,
 }
 
 
