@@ -40,16 +40,17 @@ class ServiceRequestsAPI(Resource):
                 "customer_id": ser_req.customer_id,
                 "customer_name": ser_req.user.name,
                 "professional_id": ser_req.professional_id,
-                "date_of_request": ser_req.date_of_request.strftime('%Y-%m-%dT%H:%M'),
-                "date_of_completion": ser_req.date_of_completion.strftime('%Y-%m-%dT%H:%M'),
+                "date_of_request": ser_req.date_of_request.strftime("%Y-%m-%dT%H:%M"),
+                "date_of_completion": ser_req.date_of_completion.strftime(
+                    "%Y-%m-%dT%H:%M"
+                ),
                 "service_status": ser_req.service_status,
                 "remarks": ser_req.remarks,
                 "rating": ser_req.rating,
             }
             if ser_req.professional_id:
-                for user in ser_req.user:
-                    if user.user_type == "professional":
-                        req["professional_name"] = user.name
+                req["professional_name"] = ser_req.professional.name
+
             service_requests.append(req)
         return service_requests
 
@@ -89,7 +90,23 @@ class ServiceRequestAPI(Resource):
         ser_req = ServiceRequest.query.get(id)
         if not ser_req:
             return {"message": "Not Found"}, 404
-        return ser_req
+        req = {
+            "id": ser_req.id,
+            "service_id": ser_req.service_id,
+            "service_name": ser_req.service.name,
+            "customer_id": ser_req.customer_id,
+            "customer_name": ser_req.user.name,
+            "professional_id": ser_req.professional_id,
+            "date_of_request": ser_req.date_of_request.strftime("%Y-%m-%dT%H:%M"),
+            "date_of_completion": ser_req.date_of_completion.strftime("%Y-%m-%dT%H:%M"),
+            "service_status": ser_req.service_status,
+            "remarks": ser_req.remarks,
+            "rating": ser_req.rating,
+        }
+        if ser_req.professional_id:
+            req["professional_name"] = ser_req.professional.name
+
+        return req
 
     @auth_required("token")
     @roles_accepted("professional", "customer")
@@ -118,8 +135,7 @@ class ServiceRequestAPI(Resource):
 
                 db.session.commit()
                 return make_response(jsonify({"message": "updated Sucessfully"}), 200)
-            except Exception as e:
-                print(e, "😁😁😁😁")
+            except:
                 db.session.rollback()
                 return make_response(jsonify({"message": "Updation Unsucessfull"}), 500)
         else:
@@ -160,16 +176,16 @@ class CustomerRequest(Resource):
                 "customer_id": ser_req.customer_id,
                 "customer_name": ser_req.user.name,
                 "professional_id": ser_req.professional_id,
-                "date_of_request": ser_req.date_of_request.strftime('%Y-%m-%dT%H:%M'),
-                "date_of_completion": ser_req.date_of_completion.strftime('%Y-%m-%dT%H:%M'),
+                "date_of_request": ser_req.date_of_request.strftime("%Y-%m-%dT%H:%M"),
+                "date_of_completion": ser_req.date_of_completion.strftime(
+                    "%Y-%m-%dT%H:%M"
+                ),
                 "service_status": ser_req.service_status,
                 "remarks": ser_req.remarks,
                 "rating": ser_req.rating,
             }
             if ser_req.professional_id:
-                for user in ser_req.user:
-                    if user.user_type == "professional":
-                        req["professional_name"] = user.name
+                req["professional_name"] = ser_req.professional.name
             cust_reqs.append(req)
         return cust_reqs
 

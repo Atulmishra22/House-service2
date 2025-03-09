@@ -44,6 +44,13 @@ class Professional(Users):
     date_created = db.Column(db.DateTime, default=datetime.now, nullable=False)
     experience = db.Column(db.Integer, nullable=False)
     file_path = db.Column(db.String, nullable=True)
+    service_requests = db.relationship(
+        "ServiceRequest",
+        backref="professional",
+        lazy=True,
+        cascade="all, delete-orphan",
+    )
+
     __mapper_args__ = {
         "polymorphic_identity": "professional",  # For professional users
     }

@@ -40,10 +40,10 @@ export default {
                           <p v-if="service_request.service_status" >{{service_request.service_status.toUpperCase() }}</p>
                       </div>
                       <div class="col text-center">
-                        <button @click="cancelService(service_request.id,true)" class="btn btn-secondary m-1">Close</button>
-                        <button @click="cancelService(service_request.id,false)" class="btn btn-primary m-1">Cancel</button>
-                        <button data-bs-toggle="modal" @click="showRequestDetails(service_request)" data-bs-target="#request-update-form" class="btn btn-warning m-1">Update</button>
-                        <button @click="deleteRequest(service_request.id)" class="btn btn-danger"><i class="fa-solid fa-trash me-1"></i>Delete</button>
+                        <button v-if="service_request.service_status.toLowerCase() === 'accepted'" @click="cancelService(service_request.id,true)" class="btn btn-secondary m-1">Close</button>
+                        <button v-if="service_request.service_status.toLowerCase() === 'requested' || service_request.service_status.toLowerCase() === 'accepted' " @click="cancelService(service_request.id,false)" class="btn btn-primary m-1">Cancel</button>
+                        <button v-if="service_request.service_status.toLowerCase() === 'requested'" data-bs-toggle="modal" @click="showRequestDetails(service_request)" data-bs-target="#request-update-form" class="btn btn-warning m-1">Update</button>
+                        <button v-if="service_request.service_status.toLowerCase() === 'close' || service_request.service_status.toLowerCase() === 'cancel' " @click="deleteRequest(service_request.id)" class="btn btn-danger"><i class="fa-solid fa-trash me-1"></i>Delete</button>
                       </div>
                       
                     </div>
@@ -159,6 +159,8 @@ export default {
     data() {
       return {
         selectedRequest:{},
+        close:"close",
+        cancel:"cancel",
       };
     },
     

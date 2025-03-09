@@ -21,7 +21,7 @@ export default {
                 </div>
             </div>
         </div>
-        
+
         <div class="container row mt-4">
             <div class="col-4">
             <h4>Welcome <span class="text-primary">{{customer_details.name}}</span> </h4>
@@ -34,14 +34,14 @@ export default {
             </div>
             </div>
             </div>
-            
         </div>
+
         <div class="customer-services-container">
-            <div class="services"> 
+            <div v-if="service_professionals.length === 0 " class="services"> 
                 <h4 class="text-center"> Services </h4>
                 <div class="my-5 row container-fluid align-items-center justify-content-center">
                     <div v-for="service in services" class="col-8 col-lg-4 col-xl-2 my-4">
-                    <div class="card border-primary">
+                    <div @click="fetchServiceProfessionals(service.id)" class="card border-primary">
                         <div class="card-body text-center">
                         <div class="card-title">
                             <h5 class="card-title">{{service.name}}</h5>
@@ -51,15 +51,53 @@ export default {
                     </div>
                 </div>
             </div>
-            <div>
+
+            <div v-else class="service-professional"> 
+                <h4 class="text-center"> Professionals </h4>
+                <div class="my-5 row container-fluid align-items-center justify-content-center">
+                    <div v-for="service_professional in service_professionals" class="col-8 col-lg-4 col-xl-2 my-4">
+                    <div class="card shadow">
+                      <div class="card-header text-center">
+                        {{service_professional.name}}
+                      </div>
+                      <div class="card-body">
+                      <table class="table">
+                      <tbody>
+                        <tr>
+                          <th> Phone:</th>
+                          <td>{{ service_professional.phone}}</td>
+                        </tr>
+                        <tr>
+                          <th> Service:</th>
+                          <td>{{ service_professional.service_name}}</td>
+                        </tr>
+                        <tr>
+                          <th> Rating:</th>
+                          <td>{{ service_professional.rating}} &#10024</td>
+                        </tr>
+                        <tr>
+                          <th> Address:</th>
+                          <td>{{ service_professional.address }}</td>
+                        </tr>
+                        <tr>
+                          <th> Pincode:</th>
+                          <td>{{ service_professional.pincode }}</td>
+                        </tr>
+                      </tbody>
+                      </table>
+                      <button @click="selectedProfessional(service_professional)" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#book-service" >Book</button>
+                      </div>
+                    </div>
+                    </div>
+                </div>
             </div>
         </div>
+
         <div class="modal fade" id="profile" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                 <div class="modal-header">
                     <h1 class="modal-title fs-5">Profile</h1>
-                    
                 </div>
                 <div class="modal-body">
                     <Profile :userDetails=customer_details @refreshCustomer=refreshCustomer @showAlert=showAlert />
@@ -70,15 +108,54 @@ export default {
                 </div>
             </div>
         </div>
+
         <div class="modal fade" id="add-request" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                 <div class="modal-header">
                     <h1 class="modal-title fs-5">Add Request</h1>
-                    
                 </div>
                 <div class="modal-body">
                     <AddRequest :services=services :customerData=customer_details @showAlert=showAlert @refreshRequest=refreshRequest />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="book-service" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Application: Book </h1>
+                    
+                </div>
+                <div class="modal-body">
+                  <form @submit.prevent="bookService" >
+                    <div class="mb-3">
+                    <label for="customer-name" class="form-label">Customer Name:</label>
+                    <input type="text" class="form-control" v-model="request.customer_name" id="customer-name" readonly  required>
+                    </div>
+                    <div class="mb-3">
+                    <label for="profesional-name" class="form-label">Professional Name:</label>
+                    <input type="text" class="form-control" v-model="request.professional_name" id="profesional-name" readonly  required>
+                    </div>
+                    <div class="mb-3">
+                    <label for="service" class="form-label">Service:</label>
+                    <input type="text" class="form-control" v-model="request.service_name" id="service" readonly  required>
+                    </div>
+                    <div class="mb-3">
+                    <label for="request-date" class="form-label">Request Date:</label>
+                    <input type="datetime-local" class="form-control" v-model="request.date_of_request" id="request-date" required>
+                    </div>
+                    <div class="mb-3">
+                    <label for="completion-date" class="form-label">Completion Time:</label>
+                    <input type="datetime-local" class="form-control"  v-model="request.date_of_completion" id="completion-date" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary me-1" data-bs-dismiss="modal">BooK</button>
+                  </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -111,6 +188,8 @@ export default {
       services: [],
       alertBox: false,
       successMessage: "",
+      service_professionals:[],
+      request:{}
     };
   },
   mounted() {
@@ -126,6 +205,43 @@ export default {
         this.alertBox = false;
       }, 2000);
     },
+
+    selectedProfessional(professional){
+      this.request['customer_id'] = this.customer_details.id;
+      this.request['professional_id'] = professional.id;
+      this.request['service_id'] = professional.service_id;
+      this.request['customer_name'] = this.customer_details.name;
+      this.request['service_name'] = professional.service_name;
+      this.request['professional_name'] = professional.name;
+      this.request["date_of_request"] = "";
+      this.request["date_of_completion"] = "";
+
+      
+    },
+
+    async bookService() {
+      
+      try {
+        const res = await fetch(location.origin + "/api/service_requests", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Auth: this.$store.state.auth_token,
+          },
+          body: JSON.stringify(this.request),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          console.log(data.message)
+        } else {
+          const req_data = await res.json();
+          console.log(req_data);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    },
+
     async fetchServices() {
       try {
         const res = await fetch(
@@ -139,6 +255,27 @@ export default {
         if (res.ok) {
           const ser_data = await res.json();
           this.services = ser_data;
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    },
+
+    async fetchServiceProfessionals(id) {
+      try {
+        const res = await fetch(
+          location.origin + "/api/professionals/service/"+ id ,
+          {
+            headers: {
+              Auth: this.$store.state.auth_token,
+            },
+          }
+        );
+        if (res.ok) {
+          const data = await res.json();
+          this.service_professionals = data
+          console.log(this.service_professionals)
+          
         }
       } catch (error) {
         console.log(error);

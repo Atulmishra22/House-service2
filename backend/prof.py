@@ -141,6 +141,8 @@ api.add_resource(
 
 class ProfessionalService(Resource):
 
+    @auth_required('token')
+    @roles_accepted("customer")
     def get(self, id):
         profs = Professional.query.filter_by(service_id=id)
         if not profs:
