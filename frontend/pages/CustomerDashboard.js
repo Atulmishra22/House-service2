@@ -15,7 +15,7 @@ export default {
                 </div>
                 <div class="searchbar">
                 <form class="d-flex" role="search">
-                <input class="form-control m-2" v-model="searchQuery" type="search" @input="search" id="searchbar" placeholder="Search">
+                <input class="form-control m-2" v-model="searchQuery" type="search" @keydown.enter="search" id="searchbar" placeholder="Search">
                 <button class="btn btn-primary my-2" @click="search" type="submit">Search</button>
                 </form>
                 </div>
@@ -37,11 +37,11 @@ export default {
         </div>
 
         <div class="customer-services-container">
-            <div v-if="service_professionals.length === 0 " class="services"> 
+            <div v-if="service_professionals.length === 0 && filteredService.length === 0 " class="services"> 
                 <h4 class="text-center"> Services </h4>
                 <div class="my-5 row container-fluid align-items-center justify-content-center">
                     <div v-for="service in services" class="col-8 col-lg-4 col-xl-2 my-4">
-                    <div @click="fetchServiceProfessionals(service.id)" class="card border-primary">
+                    <div @click="fetchServiceProfessionals(service.id)" class="card border-primary pointer-cursor">
                         <div class="card-body text-center">
                         <div class="card-title">
                             <h5 class="card-title">{{service.name}}</h5>
@@ -52,7 +52,22 @@ export default {
                 </div>
             </div>
 
-            <div v-else class="service-professional"> 
+            <div v-if="filteredService.length > 0 && service_professionals.length == 0" class="services"> 
+                <h4 class="text-center"> Services </h4>
+                <div class="my-5 row container-fluid align-items-center justify-content-center">
+                    <div v-for="prof in filteredService" class="col-8 col-lg-4 col-xl-2 my-4">
+                    <div @click="serviceProfessionalCard()" class="card border-primary pointer-cursor">
+                        <div class="card-body text-center">
+                        <div class="card-title">
+                            <h5 class="card-title">{{prof.service_name}}</h5>
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="service_professionals.length > 0 " class="service-professional"> 
                 <h4 class="text-center"> Professionals </h4>
                 <div class="my-5 row container-fluid align-items-center justify-content-center">
                     <div v-for="service_professional in service_professionals" class="col-8 col-lg-4 col-xl-2 my-4">
@@ -73,7 +88,7 @@ export default {
                         </tr>
                         <tr>
                           <th> Rating:</th>
-                          <td>{{ service_professional.rating}} &#10024</td>
+                          <td>{{ service_professional.rating}} ⭐</td>
                         </tr>
                         <tr>
                           <th> Address:</th>
@@ -88,6 +103,9 @@ export default {
                       <button @click="selectedProfessional(service_professional)" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#book-service" >Book</button>
                       </div>
                     </div>
+                    </div>
+                    <div>
+                    <button @click="service_professionals = []" class="mx-4 btn btn-primary" >choose another service?</button>
                     </div>
                 </div>
             </div>
@@ -154,6 +172,10 @@ export default {
                     <label for="completion-date" class="form-label">Completion Time:</label>
                     <input type="datetime-local" class="form-control"  v-model="request.date_of_completion" id="completion-date" required>
                     </div>
+                    <div class="mb-3">
+                    <label for="remarks" class="form-label">Remarks:</label>
+                    <input type="text" class="form-control" v-model="request.remarks" id="remarks" required>
+                    </div>
                     <button type="submit" class="btn btn-primary me-1" data-bs-dismiss="modal">BooK</button>
                   </form>
                 </div>
@@ -166,7 +188,7 @@ export default {
         <div class="servcie-request container-fluid">
         <h3 class="mt-4 ps-4 bg-warning rounded-1 "> Service Request </h3>
         <div class="container mt-2">
-            <ActionServiceRequest :service_requests=service_requests @showAlert=showAlert @refreshRequest=refreshRequest />
+            <ActionServiceRequest :service_requests=filteredServicesRequest @showAlert=showAlert @refreshRequest=refreshRequest />
         </div>
         </div>
         <footer class="mt-2">
@@ -188,8 +210,11 @@ export default {
       services: [],
       alertBox: false,
       successMessage: "",
-      service_professionals:[],
-      request:{}
+      service_professionals: [],
+      request: {},
+      filteredServicesRequest: [],
+      filteredService: [],
+      professionals: [],
     };
   },
   mounted() {
@@ -206,21 +231,23 @@ export default {
       }, 2000);
     },
 
-    selectedProfessional(professional){
-      this.request['customer_id'] = this.customer_details.id;
-      this.request['professional_id'] = professional.id;
-      this.request['service_id'] = professional.service_id;
-      this.request['customer_name'] = this.customer_details.name;
-      this.request['service_name'] = professional.service_name;
-      this.request['professional_name'] = professional.name;
+    serviceProfessionalCard(){
+      this.service_professionals = this.filteredService
+    },
+
+    selectedProfessional(professional) {
+      this.request["customer_id"] = this.customer_details.id;
+      this.request["professional_id"] = professional.id;
+      this.request["service_id"] = professional.service_id;
+      this.request["customer_name"] = this.customer_details.name;
+      this.request["service_name"] = professional.service_name;
+      this.request["professional_name"] = professional.name;
       this.request["date_of_request"] = "";
       this.request["date_of_completion"] = "";
-
-      
+      this.request["remarks"] = "";
     },
 
     async bookService() {
-      
       try {
         const res = await fetch(location.origin + "/api/service_requests", {
           method: "POST",
@@ -232,7 +259,8 @@ export default {
         });
         if (res.ok) {
           const data = await res.json();
-          console.log(data.message)
+          this.showAlert(data.message);
+          this.fetchServiceRequests();
         } else {
           const req_data = await res.json();
           console.log(req_data);
@@ -255,16 +283,17 @@ export default {
         if (res.ok) {
           const ser_data = await res.json();
           this.services = ser_data;
+          
         }
       } catch (error) {
         console.log(error);
       }
     },
 
-    async fetchServiceProfessionals(id) {
+    async fetchServiceProfessionals(service_id) {
       try {
         const res = await fetch(
-          location.origin + "/api/professionals/service/"+ id ,
+          location.origin + "/api/professionals/service/" + service_id,
           {
             headers: {
               Auth: this.$store.state.auth_token,
@@ -273,9 +302,28 @@ export default {
         );
         if (res.ok) {
           const data = await res.json();
-          this.service_professionals = data
-          console.log(this.service_professionals)
-          
+          this.service_professionals = data;
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    },
+
+    async SearchProfessionals(query) {
+      try {
+        const res = await fetch(
+          location.origin + `/api/professionals/search/${query}`,
+          {
+            headers: {
+              Auth: this.$store.state.auth_token,
+            },
+          }
+        );
+        if (res.ok) {
+          const data = await res.json();
+          this.filteredService = data;
+          console.log(data);
+          console.log(this.filteredService)
         }
       } catch (error) {
         console.log(error);
@@ -315,24 +363,29 @@ export default {
         if (res.ok) {
           const req_data = await res.json();
           this.service_requests = req_data;
+          this.filteredServicesRequest = this.service_requests;
         }
       } catch (error) {
         console.log(error);
       }
     },
     search() {
-      const query = this.searchQuery.toLowerCase(); // Make the query case-insensitive
+      const query = this.searchQuery.toLowerCase(); 
 
       if (query === "") {
-        this.filteredServicesRequest = this.services_requests;
+        this.filteredServicesRequest = this.service_requests;
+        this.filteredService = []
       }
-      // Filter services based on name or description
-      this.filteredServicesRequest = this.services_requests.filter(
+      this.filteredServicesRequest = this.service_requests.filter(
         (service_request) =>
-          service_request.customer_name.toLowerCase().includes(query) ||
-          service_request.professional_name.toLowerCase().includes(query) ||
-          service_request.service_name.toLowerCase().includes(query)
+          service_request.professional_name
+            ? service_request.professional_name.toLowerCase().includes(query)
+            : false ||
+              service_request.service_name.toLowerCase().includes(query)
       );
+      this.SearchProfessionals(query)
+      
+      
     },
     refreshCustomer() {
       this.fetchCustomerDetail();

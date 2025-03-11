@@ -1,56 +1,64 @@
+import Rating from "./Rating.js";
+
 export default {
-    props :['service_requests'],
-    template: `
+  props: ["service_requests"],
+  template: `
       <div>
       <div class="sr-accordion">
       
       <div class="accordion">
           <div class="accordion-item">
               <h2 class="accordion-header">
-              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#service-requests">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#action-service-requests">
                   <div class="container row">
-                      <h4 class="col text-center">ID</h4>
-                      <h4 class="col text-center">Customer name</h4>
-                      <h4 class="col text-center">Professional name</h4>
-                      <h4 class="col text-center">Service name</h4>
-                      <h4 class="col text-center">Service status</h4>
-                      <h4 class="col text-center">Action</h4>
+                      <h4 class="col-1 text-center">ID</h4>
+                      <h4 class="col-2 text-center">Customer name</h4>
+                      <h4 class="col-2 text-center">Professional name</h4>
+                      <h4 class="col-2 text-center">Service name</h4>
+                      <h4 class="col-2 text-center">Service status</h4>
+                      <h4 class="col-3 text-center">Action</h4>
                   </div>
               </button>
               </h2>
-              <div id="service-requests" class="accordion-collapse collapse show">
+              <div id="action-service-requests" class="accordion-collapse collapse show">
               <div v-if="service_requests.length === 0" class="accordion-body">
                   <h4>No Data Available</h4>
               </div>
               <div v-else class="accordion-body">
                     <div v-for="service_request in service_requests" :key="service_request.id" class="conatiner row border border-primary p-1 lead rounded mb-1">
-                      <div class="col text-center">
+                      <div class="col-1 text-center">
                           <button data-bs-toggle="modal" data-bs-target="#service-requestDetail" class="fw-bold btn btn-outline-info" :value="service_request.id" @click="showRequestDetails(service_request)" >{{service_request.id}}</button>
                       </div>
-                      <div class="col text-center">
+                      <div class="col-2 text-center">
                           <p >{{service_request.customer_name}}</p>
                       </div>
-                      <div class="col text-center">
+                      <div class="col-2 text-center">
                           <p >{{service_request.professional_name}}</p>
                       </div>
-                      <div class="col text-center">
+                      <div class="col-2 text-center">
                           <p >{{service_request.service_name }}</p>
                       </div>
-                      <div class="col text-center">
+                      <div class="col-2 text-center">
                           <p v-if="service_request.service_status" >{{service_request.service_status.toUpperCase() }}</p>
                       </div>
-                      <div class="col text-center">
-                        <button v-if="service_request.service_status.toLowerCase() === 'accepted'" @click="cancelService(service_request.id,true)" class="btn btn-secondary m-1">Close</button>
-                        <button v-if="service_request.service_status.toLowerCase() === 'requested' || service_request.service_status.toLowerCase() === 'accepted' " @click="cancelService(service_request.id,false)" class="btn btn-primary m-1">Cancel</button>
+                      <div v-if="$store.state.role === 'customer'" class="col-3 text-center">
+                        <button v-if="service_request.service_status.toLowerCase() === 'accepted'" data-bs-toggle="modal" data-bs-target="#close-form" @click="showRequestDetails(service_request)" class="btn btn-secondary m-1">Close</button>
+                        <button v-if="service_request.service_status.toLowerCase() === 'requested' || service_request.service_status.toLowerCase() === 'accepted' " @click="updateServiceStatus(service_request.id,'cancel')" class="btn btn-danger m-1">Cancel</button>
                         <button v-if="service_request.service_status.toLowerCase() === 'requested'" data-bs-toggle="modal" @click="showRequestDetails(service_request)" data-bs-target="#request-update-form" class="btn btn-warning m-1">Update</button>
-                        <button v-if="service_request.service_status.toLowerCase() === 'close' || service_request.service_status.toLowerCase() === 'cancel' " @click="deleteRequest(service_request.id)" class="btn btn-danger"><i class="fa-solid fa-trash me-1"></i>Delete</button>
+                        <button v-if="service_request.service_status.toLowerCase() === 'close' || service_request.service_status.toLowerCase() === 'cancel' || service_request.service_status.toLowerCase() === 'rejected' " @click="updateServiceStatus(service_request.id)" class="btn btn-danger"><i class="fa-solid fa-trash me-1"></i>Delete</button>
+                      </div>
+                      <div v-if="$store.state.role === 'professional'" class="col-3 text-center">
+                        <button v-if="service_request.service_status.toLowerCase() === 'requested' " @click="updateServiceStatus(service_request.id,'accepted')" class="btn btn-warning m-1">Accept</button>
+                        <h5 v-if="service_request.service_status.toLowerCase() === 'accepted' " class="text-primary"> {{service_request.service_status}}</h5>
+                        <button v-if="service_request.service_status.toLowerCase() === 'requested' && service_request.professional_id " @click="updateServiceStatus(service_request.id,'rejected')" class="btn btn-danger m-1">Reject</button>
+                        <button v-if="service_request.service_status.toLowerCase() === 'close' || service_request.service_status.toLowerCase() === 'cancel' || service_request.service_status.toLowerCase() === 'rejected' " @click="updateServiceStatus(service_request.id)" class="btn btn-danger"><i class="fa-solid fa-trash me-1"></i>Delete</button>
                       </div>
                       
                     </div>
               </div>
               </div>
           </div>
-          <div class="modal fade" id="request-update-form" tabindex="-1">
+          <div v-if="$store.state.role === 'customer'" class="modal fade" id="request-update-form" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                 <div class="modal-header">
@@ -83,6 +91,10 @@ export default {
                         <label for="completion-date" class="form-label">Completion Time:</label>
                         <input type="datetime-local" class="form-control" v-model="selectedRequest.date_of_completion" id="completion-date" required>
                         </div>
+                        <div class="mb-3">
+                        <label for="remarks" class="form-label">Remarks:</label>
+                        <input type="text" class="form-control" v-model="selectedRequest.remarks" id="remarks" required>
+                        </div>
                         <button type="submit" class="btn btn-primary me-1" data-bs-dismiss="modal">Modify</button>
                     </form>
                 </div>
@@ -92,7 +104,7 @@ export default {
                 </div>
             </div>
         </div>
-          <div class="modal fade" id="service-requestDetail" tabindex="-1" >
+        <div class="modal fade" id="service-requestDetail" tabindex="-1" >
             <div class="modal-dialog modal-dialog-centered">
               <div class="modal-content">
                 <div class="modal-header">
@@ -101,8 +113,8 @@ export default {
                 </div>
                 <div class="modal-body">
                   <div class="card shadow">
-                    <div class="card-header text-center">
-                      {{selectedRequest.customer_name}}
+                    <div v-if="$store.state.role === 'customer'" class="card-header text-center">
+                      {{ selectedRequest.customer_name }}
                     </div>
                     <div class="card-body">
                     <table class="table border border-primary">
@@ -150,140 +162,204 @@ export default {
           </div>
         </div>
       </div>
+      <div v-if="$store.state.role === 'customer'" class="modal fade" id="close-form" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Close Request</h1>
+                    
+                </div>
+                <div class="modal-body">
+                  <form @submit.prevent="closeForm" >
+                    <div class="mb-3">
+                    <label for="service-id" class="form-label">Service ID:</label>
+                    <input type="number" class="form-control" v-model="selectedRequest.id"  id="service-id" readonly  required>
+                    </div>
+                    <div class="mb-3">
+                    <label>Rating:</label>
+                    <Rating @rating=updatedRating />
+                    </div>
+                    <button type="submit" class="btn btn-primary me-1" data-bs-dismiss="modal">Submit</button>
+                  </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+                </div>
+            </div>
+        </div>
       </div>
       </div>
       </div>
   
       
       `,
-    data() {
-      return {
-        selectedRequest:{},
-        close:"close",
-        cancel:"cancel",
-      };
-    },
-    
-    
-    methods: {
-      showRequestDetails(service_request){
-        this.selectedRequest = service_request;
 
-      },
-      async deleteRequest(id) {
-        try {
-          const res = await fetch(location.origin + "/api/service_requests/" + id, {
+  components: {
+    Rating,
+  },
+
+  data() {
+    return {
+      selectedRequest: {},
+      rating: 0,
+      remarks: "",
+    };
+  },
+
+  methods: {
+    showRequestDetails(service_request) {
+      this.selectedRequest = service_request;
+    },
+    updatedRating(rating) {
+      this.rating = rating;
+    },
+
+    async closeForm() {
+      const data = {
+        rating: this.rating,
+        remarks: this.remarks,
+        service_status: "close",
+      };
+      this.rating = 0;
+      this.remarks = "";
+      console.log(data);
+      try {
+        const res = await fetch(
+          location.origin + `/api/service_requests/${this.selectedRequest.id}`,
+          {
+            method: "PUT",
+            headers: {
+              Auth: this.$store.state.auth_token,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          }
+        );
+        if (res.ok) {
+          const responseData = await res.json();
+          this.$emit("showAlert", responseData.message);
+          this.$emit("refreshRequest");
+        } else {
+          const errorData = await res.json();
+          console.error("failed to add", errorData);
+        }
+      } catch (error) {
+        console.error("Request failed", error);
+      }
+    },
+    async deleteRequest(id) {
+      try {
+        const res = await fetch(
+          location.origin + "/api/service_requests/" + id,
+          {
             method: "DELETE",
             headers: {
               Auth: this.$store.state.auth_token,
             },
-          });
-          if (res.ok) {
-            const data = await res.json();
-            console.log(data)
-            this.$emit("showAlert", data.message);
-            this.$emit("refreshRequest");
-          } else {
-            const data = await res.json();
-            console.log(data);
           }
-        } catch (error) {
-          console.log(error);
+        );
+        if (res.ok) {
+          const data = await res.json();
+          console.log(data);
+          this.$emit("showAlert", data.message);
+          this.$emit("refreshRequest");
+        } else {
+          const data = await res.json();
+          console.log(data);
         }
-      },
-      async updateRequest() {
-        this.selectedRequest.service_status = '';
-        try {
-          const res = await fetch(
-            location.origin + `/api/service_requests/${this.selectedRequest.id}`,
-            {
-              method: "PUT",
-              headers: {
-                Auth: this.$store.state.auth_token,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(this.selectedRequest),
-            }
-          );
-          if (res.ok) {
-            const responseData = await res.json();
-            console.log(responseData)
-            this.$emit("showAlert", responseData.message);
-            this.$emit("refreshRequest");
-          } else {
-            const errorData = await res.json();
-            console.error("failed to add", errorData);
-          }
-        } catch (error) {
-          console.error("Request failed", error);
-        }
-      },
-      async cancelService(id,status) {
-        let service_status="";
-        if (status){
-            service_status= "close"
-        }else{
-            service_status = "cancel"
-        }
-        const data ={
-            service_status:service_status
-        }
-        try {
-          const res = await fetch(
-            location.origin + `/api/service_requests/${id}`,
-            {
-              method: "PUT",
-              headers: {
-                Auth: this.$store.state.auth_token,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(data),
-            }
-          );
-          if (res.ok) {
-            const responseData = await res.json();
-            console.log(responseData)
-            this.$emit("showAlert", responseData.message);
-            this.$emit("refreshRequest");
-          } else {
-            const errorData = await res.json();
-            console.error("failed to add", errorData);
-          }
-        } catch (error) {
-          console.error("Request failed", error);
-        }
-      },
-      async closeService(id) {
-        const data = {
-            service_status:"close"
-        }
-        try {
-          const res = await fetch(
-            location.origin + `/api/service_requests/${id}`,
-            {
-              method: "PUT",
-              headers: {
-                Auth: this.$store.state.auth_token,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(data),
-            }
-          );
-          if (res.ok) {
-            const responseData = await res.json();
-            console.log(responseData)
-            this.$emit("showAlert", responseData.message);
-            this.$emit("refreshRequest");
-          } else {
-            const errorData = await res.json();
-            console.error("failed to add", errorData);
-          }
-        } catch (error) {
-          console.error("Request failed", error);
-        }
-      },
-      
-      
+      } catch (error) {
+        console.log(error);
+      }
     },
+    async updateRequest() {
+      this.selectedRequest.service_status = "";
+      try {
+        const res = await fetch(
+          location.origin + `/api/service_requests/${this.selectedRequest.id}`,
+          {
+            method: "PUT",
+            headers: {
+              Auth: this.$store.state.auth_token,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(this.selectedRequest),
+          }
+        );
+        if (res.ok) {
+          const responseData = await res.json();
+          console.log(responseData);
+          this.$emit("showAlert", responseData.message);
+          this.$emit("refreshRequest");
+        } else {
+          const errorData = await res.json();
+          console.error("failed to add", errorData);
+        }
+      } catch (error) {
+        console.error("Request failed", error);
+      }
+    },
+    async updateServiceStatus(id, status) {
+      const data = {
+        service_status: status,
+      };
+      if (this.$store.state.role === "professional") {
+        data["professional_id"] = this.$store.state.user_id;
+        console.log(data);
+      }
+      try {
+        const res = await fetch(
+          location.origin + `/api/service_requests/${id}`,
+          {
+            method: "PUT",
+            headers: {
+              Auth: this.$store.state.auth_token,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          }
+        );
+        if (res.ok) {
+          const responseData = await res.json();
+          console.log(responseData);
+          this.$emit("showAlert", responseData.message);
+          this.$emit("refreshRequest");
+        } else {
+          const errorData = await res.json();
+          console.error("failed to add", errorData);
+        }
+      } catch (error) {
+        console.error("Request failed", error);
+      }
+    },
+    async closeService(id) {
+      const data = {
+        service_status: "close",
+      };
+      try {
+        const res = await fetch(
+          location.origin + `/api/service_requests/${id}`,
+          {
+            method: "PUT",
+            headers: {
+              Auth: this.$store.state.auth_token,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          }
+        );
+        if (res.ok) {
+          const responseData = await res.json();
+          console.log(responseData);
+          this.$emit("showAlert", responseData.message);
+          this.$emit("refreshRequest");
+        } else {
+          const errorData = await res.json();
+          console.error("failed to add", errorData);
+        }
+      } catch (error) {
+        console.error("Request failed", error);
+      }
+    },
+  },
 };
-  

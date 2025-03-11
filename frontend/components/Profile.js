@@ -1,18 +1,31 @@
 export default {
   template: `
     <div v-if="userDetails" class="container">
-        <form @submit.prevent="updateUser(userDetails.id)" >
+        <form @submit.prevent="updateUser()" >
             <div class="mb-3">
-            <label for="customer-name" class="form-label">Customer Name:</label>
-            <input type="text" class="form-control" v-model="userDetails.name" id="customer-name"  required>
+            <label v-if="$store.state.role === 'professional'" for="name" class="form-label">Professional Name:</label>
+            <label v-else for="name" class="form-label">Customer Name:</label>
+            <input type="text" class="form-control" v-model="userDetails.name" id="name"  required>
             </div>
             <div class="mb-3">
             <label for="email" class="form-label">Email:</label>
-            <input type="email" class="form-control" v-model="userDetails.email" id="email"  required>
+            <input type="email" class="form-control" v-model="userDetails.email" id="email" required>
             </div>
             <div class="mb-3">
             <label for="phone" class="form-label">Phone:</label>
             <input type="number" class="form-control" v-model="userDetails.phone" id="phone"  required>
+            </div>
+            <div class="mb-3">
+            <label v-if="$store.state.role === 'professional'" for="service" class="form-label">Service:</label>
+            <input type="text" class="form-control bg-light" v-model="userDetails.service_name" id="service" readonly required>
+            </div>
+            <div class="mb-3">
+            <label v-if="$store.state.role === 'professional'" for="experience" class="form-label">Experience:</label>
+            <input type="number" class="form-control" v-model="userDetails.experience" id="experience" required>
+            </div>
+            <div class="mb-3">
+            <label v-if="$store.state.role === 'professional'" for="date-created" class="form-label">Date of Creation:</label>
+            <input type="text" class="form-control bg-light" v-model="userDetails.date_created" id="date-created" readonly required>
             </div>
             <div class="mb-3">
             <label for="address" class="form-label">Address:</label>
@@ -29,8 +42,14 @@ export default {
   props: ["userDetails"],
   methods:{
     async updateUser(id) {
+      let api_url ;
+      if (this.$store.state.role === 'professional'){
+        api_url = "/api/professionals/"
+      }else{
+        api_url = "/api/customers/"
+      }
         try {
-          const res = await fetch(location.origin + "/api/customers/"+ id ,{
+          const res = await fetch(location.origin + api_url + this.$store.state.user_id ,{
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
@@ -40,12 +59,13 @@ export default {
           });
           if (res.ok) {
             const data = await res.json();
-            
             this.$emit('showAlert',data.message);
-            if (this.userDetails.user_type === "user"){
+            if (this.$store.state.role === 'customer'){
               this.$emit('refreshCustomer');
 
-            }
+            }else{
+              this.$emit('refreshProfessional');
+            };
             
           }else{
             const ser_data = await res.json();

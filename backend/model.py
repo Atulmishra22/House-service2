@@ -52,16 +52,16 @@ class Professional(Users):
     )
 
     __mapper_args__ = {
-        "polymorphic_identity": "professional",  # For professional users
+        "polymorphic_identity": "professional",
     }
 
     def total_rating(self):
         total = (
-            db.session.query(func.sum(ServiceRequest.rating))
+            db.session.query(func.avg(ServiceRequest.rating))
             .filter(ServiceRequest.professional_id == self.id)
             .scalar()
         )
-        return total if total is not None else 0
+        return round(total, 1) if total is not None else 0
 
 
 class Roles(db.Model, RoleMixin):

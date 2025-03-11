@@ -41,10 +41,10 @@ export default {
                             <p >{{professional.pincode}}</p>
                         </div>
                         </div>
-                        <div class="col">
-                          <button v-if="professional.active" @click="professionalStatus(professional.id,false)" class="btn btn-secondary m-1">Block</button>
-                          <button v-else @click="professionalStatus(professional.id,true)" class="btn btn-primary m-1">UnBlock</button>
-                          <button @click="deleteProfessional(professional.id)" class="btn btn-danger"><i class="fa-solid fa-trash me-1"></i>Delete</button>
+                        <div class="col-2">
+                          <button v-if="professional.active" @click="professionalStatus(professional.id,false)" class="btn btn-secondary me-1"> Block</button>
+                          <button v-else @click="professionalStatus(professional.id,true)" class="btn btn-primary m-1"> Approve</button>
+                          <button @click="deleteProfessional(professional.id)" class="btn btn-danger"><i class="fa-solid fa-trash"></i> Delete</button>
                         </div>
                         
                       </div>
@@ -134,9 +134,31 @@ export default {
   methods: {
     showProfessionalDetails(professional) {
       this.selectedProfessional = professional;
-      this.file_url =
-        location.origin + `/api/verification/${professional.file_name}`;
+      this.professionalPdf(professional.file_name);
+      // this.file_url =
+      //   location.origin + `/api/verification/${professional.file_name}`;
     },
+
+    async professionalPdf(filename) {
+      try {
+        const res = await fetch(location.origin + `/api/verification/${filename}`, {
+          headers: {
+            Auth: this.$store.state.auth_token,
+          },
+        });
+        if (res.ok) {
+          const blob = await res.blob();
+          this.file_url = URL.createObjectURL(blob);
+          
+        } else {
+          const data = await res.json();
+          console.log(data);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    },
+
     async deleteProfessional(id) {
       try {
         const res = await fetch(location.origin + "/api/professionals/" + id, {

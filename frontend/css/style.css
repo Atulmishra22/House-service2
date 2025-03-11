@@ -5,9 +5,12 @@ body {
 #cutsomer-dashboard .customer-services-container{
     min-height: 50vh;
     min-width: auto;
-    /* background: blueviolet; */
     border: solid blue;
     border-radius: 10px;
     overflow-y: scroll;
 
+}
+
+.pointer-cursor {
+    cursor: pointer; 
 }

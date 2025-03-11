@@ -27,6 +27,10 @@ def login():
         return jsonify({"error": "User not found"}), 404
 
     if verify_password(password, user.password):
+
+        if not user.active:
+            return jsonify({"error": "Your account is banned or inactive."}), 403
+        
         return jsonify(
             {
                 "token": user.get_auth_token(),
@@ -79,7 +83,8 @@ def register():
                 fs_uniquifier=uuid.uuid4().hex,
                 service_id=int(service_id),
                 file_path=file_path,
-                experience=exp
+                experience=exp,
+                active=0,
                 )
             prof_role = Roles.query.filter_by(name="professional").first()
             prof.roles.append(prof_role)

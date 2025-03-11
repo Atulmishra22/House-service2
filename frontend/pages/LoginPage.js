@@ -30,6 +30,7 @@ export default {
 
         <button type="submit" class="btn btn-primary">Login</button>
       </form>
+      <div v-if="messageBox" >{{message}}</div>
     </div>
   </div>
     
@@ -37,12 +38,14 @@ export default {
   data() {
     return {
       email: '',
-      password: ''
+      password: '',
+      message:"",
+      messageBox:false,
     };
   },
   methods: {
+
     async login() {
-      // Prevent form default behavior
       const data = { email: this.email, password: this.password };
 
       try {
@@ -57,7 +60,6 @@ export default {
         if (res.ok) {
           const userData = await res.json();
           console.log('Logged in successfully', userData);
-          // You can handle success (like redirecting, setting user state, etc.)
 
           localStorage.setItem('user',JSON.stringify(userData))
           this.$store.commit('setUser')
@@ -71,13 +73,21 @@ export default {
             this.$router.push('/professional-dashboard')
           }
         } else {
-          console.error('Login failed', res);
-          // Handle error (display error messages to user)
+          const userData = await res.json();
+          console.log('Login failed', userData);
+          this.showAlert(userData.error);
         }
       } catch (error) {
         console.error('Request failed', error);
-        // Handle network or server errors
       }
+    },
+
+    showAlert(message){
+      this.message = message;
+      this.messageBox = true;
+      setTimeout(() => {
+        this.messageBox = false;
+      }, 2000);
     }
   }
 };

@@ -64,12 +64,14 @@ class ServiceRequestsAPI(Resource):
             customer_id = data.get("customer_id")
             request_date = data.get("date_of_request")
             completion_date = data.get("date_of_completion")
+            remarks = data.get("remarks")
             ser_req = ServiceRequest(
                 service_id=ser_id,
                 customer_id=customer_id,
                 professional_id=professional_id,
                 date_of_request=datetime.strptime(request_date, "%Y-%m-%dT%H:%M"),
                 date_of_completion=datetime.strptime(completion_date, "%Y-%m-%dT%H:%M"),
+                remarks=remarks,
             )
             db.session.add(ser_req)
             db.session.commit()
@@ -115,31 +117,32 @@ class ServiceRequestAPI(Resource):
         if not ser_req:
             return {"message": "Not Found"}, 404
         data = request.get_json()
-        if current_user.id == ser_req.customer_id or ser_req.professional_id:
-            try:
-                if data.get("service_status"):
-                    ser_req.service_status = data.get("service_status")
-                    db.session.commit()
-                elif data.get("remarks"):
-                    ser_req.remarks = data.get("remarks")
-                    ser_req.rating = data.get("rating")
-                else:
-                    request_date = data.get("date_of_request")
-                    ser_req.date_of_request = datetime.strptime(
-                        request_date, "%Y-%m-%dT%H:%M"
-                    )
-                    completion_date = data.get("date_of_completion")
-                    ser_req.date_of_completion = datetime.strptime(
-                        completion_date, "%Y-%m-%dT%H:%M"
-                    )
+        try:
+            if data.get("service_status") and data.get("rating"):
+                ser_req.service_status = data.get("service_status")
+                ser_req.rating = data.get("rating")
+            elif data.get("service_status") and data.get("professional_id"):
+                ser_req.service_status = data.get("service_status")
+                ser_req.professional_id = data.get("professional_id")
+            elif data.get("service_status"):
+                ser_req.service_status = data.get("service_status")
 
-                db.session.commit()
-                return make_response(jsonify({"message": "updated Sucessfully"}), 200)
-            except:
-                db.session.rollback()
-                return make_response(jsonify({"message": "Updation Unsucessfull"}), 500)
-        else:
-            return make_response(jsonify({"message": "Not Authorised"}))
+            else:
+                ser_req.remarks = data.get("remarks")
+                request_date = data.get("date_of_request")
+                ser_req.date_of_request = datetime.strptime(
+                    request_date, "%Y-%m-%dT%H:%M"
+                )
+                completion_date = data.get("date_of_completion")
+                ser_req.date_of_completion = datetime.strptime(
+                    completion_date, "%Y-%m-%dT%H:%M"
+                )
+
+            db.session.commit()
+            return make_response(jsonify({"message": "updated Sucessfully"}), 200)
+        except:
+            db.session.rollback()
+            return make_response(jsonify({"message": "Updation Unsucessfull"}), 500)
 
     @auth_required("token")
     @roles_accepted("customer", "professional")
@@ -163,7 +166,7 @@ api.add_resource(ServiceRequestsAPI, "/service_requests")
 class CustomerRequest(Resource):
 
     @auth_required("token")
-    @roles_accepted("customer", "professional")
+    @roles_accepted("customer")
     @marshal_with(ser_req_fields)
     def get(self, id):
         reqs = ServiceRequest.query.filter_by(customer_id=id)
@@ -191,3 +194,47 @@ class CustomerRequest(Resource):
 
 
 api.add_resource(CustomerRequest, "/service_requests/customer/<int:id>")
+
+
+class ProfessionalRequest(Resource):
+
+    @auth_required("token")
+    @roles_accepted("professional")
+    @marshal_with(ser_req_fields)
+    def get(self, professional_id):
+        requests_professional = ServiceRequest.query.filter(
+            ServiceRequest.professional_id == professional_id
+        ).all()
+        requests_not_professional = ServiceRequest.query.filter(
+            ServiceRequest.service_id == current_user.service_id,
+            ServiceRequest.professional_id == None,
+        ).all()
+
+        all_request = requests_not_professional + requests_professional
+
+        cust_reqs = []
+        for ser_req in all_request:
+            req = {
+                "id": ser_req.id,
+                "service_id": ser_req.service_id,
+                "service_name": ser_req.service.name,
+                "customer_id": ser_req.customer_id,
+                "customer_name": ser_req.user.name,
+                "professional_id": ser_req.professional_id,
+                "date_of_request": ser_req.date_of_request.strftime("%Y-%m-%dT%H:%M"),
+                "date_of_completion": ser_req.date_of_completion.strftime(
+                    "%Y-%m-%dT%H:%M"
+                ),
+                "service_status": ser_req.service_status,
+                "remarks": ser_req.remarks,
+                "rating": ser_req.rating,
+            }
+            if ser_req.professional_id:
+                req["professional_name"] = ser_req.professional.name
+            cust_reqs.append(req)
+        return cust_reqs
+
+
+api.add_resource(
+    ProfessionalRequest, "/service_requests/professional/<int:professional_id>"
+)

@@ -72,7 +72,7 @@ export default {
             <CustomerAccordion :customers=filteredCutsomers @showAlert=showAlert @customerDeleted=customerDeleted @refreshCustomer=refreshCustomer />
         </div>
         </div>
-        <footer>
+        <footer class="mt-4">
         
         </footer>
         

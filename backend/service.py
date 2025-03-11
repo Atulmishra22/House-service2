@@ -1,4 +1,4 @@
-from backend.model import db, Service
+from backend.model import Professional, db, Service
 from flask_restful import Resource, fields, marshal_with, Api
 from flask_security import auth_required, current_user, roles_required, roles_accepted
 from flask import request, jsonify, Blueprint, make_response
@@ -113,7 +113,10 @@ class ServiceProfessional(Resource):
     @marshal_with(service_fields)
     @auth_required("token")
     def get(self):
-        services_with_professional = Service.query.filter(Service.professional).all()
+        services_with_professional = (
+            Service.query.join(Professional).filter(Professional.active == True).all()
+        )
+
         return services_with_professional
 
 

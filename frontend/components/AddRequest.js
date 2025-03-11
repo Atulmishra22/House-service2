@@ -32,6 +32,10 @@ export default {
             <label for="completion-date" class="form-label">Completion Time:</label>
             <input type="datetime-local" class="form-control" v-model="date_of_completion" id="completion-date" required>
             </div>
+            <div class="mb-3">
+            <label for="remarks" class="form-label">Remarks:</label>
+            <input type="text" class="form-control" v-model="remarks" id="remarks" required>
+            </div>
             <button type="submit" class="btn btn-primary me-1" data-bs-dismiss="modal">Submit</button>
         </form>
     </div>
@@ -47,6 +51,7 @@ export default {
       service_id: "",
       date_of_request: "",
       date_of_completion: "",
+      remarks:"",
     };
   },
   methods: {
@@ -56,6 +61,7 @@ export default {
         service_id: this.service_id,
         date_of_request: this.date_of_request,
         date_of_completion: this.date_of_completion,
+        remarks:this.remarks,
       };
       try {
         const res = await fetch(location.origin + "/api/service_requests", {
