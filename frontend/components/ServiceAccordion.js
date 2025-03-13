@@ -16,8 +16,12 @@ export default {
                 </div>
             </button>
             </h2>
+            
             <div id="services" class="accordion-collapse collapse show">
-            <div class="accordion-body">
+                <div v-if="services.length === 0" class="accordion-body">
+                    <h4>No Data Available</h4>
+                </div>
+            <div v-else class="accordion-body">
                   <div v-for="service in services" :key="service.id" class="conatiner row border border-primary p-1 lead rounded mb-1">
                     <div class="col text-center">
                         <button data-bs-toggle="modal" data-bs-target="#serviceDetail" class="fw-bold btn btn-outline-info" :value="service.id" @click="showServiceDetails(service)" >{{service.id}}</button>

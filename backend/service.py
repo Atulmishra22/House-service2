@@ -1,8 +1,9 @@
 from backend.model import Professional, db, Service
 from flask_restful import Resource, fields, marshal_with, Api
 from flask_security import auth_required, current_user, roles_required, roles_accepted
-from flask import request, jsonify, Blueprint, make_response
+from flask import request, jsonify, Blueprint, make_response , current_app as app
 
+cache = app.cache
 service_api_bp = Blueprint("service_api", __name__, url_prefix="/api")
 api = Api(service_api_bp)
 
@@ -70,6 +71,7 @@ class ServiceApi(Resource):
 
 class ServicesApi(Resource):
 
+    @cache.cached(5)
     @marshal_with(service_fields)
     def get(self):
         sers = Service.query.all()

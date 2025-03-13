@@ -74,7 +74,6 @@ export default {
           }
         } else {
           const userData = await res.json();
-          console.log('Login failed', userData);
           this.showAlert(userData.error);
         }
       } catch (error) {

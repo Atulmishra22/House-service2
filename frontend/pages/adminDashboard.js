@@ -58,6 +58,7 @@ export default {
         <h3 class="mt-4 ps-4 bg-warning rounded-1 "> Service Request </h3>
         <div class="container mt-2">
             <ServiceRequest :service_requests=filteredServiceRequests  />
+            <button @click="downloadCsv" class="btn btn-primary mt-2"> Download CSV </button>
         </div>
         </div>
         <div class="professional container-fluid">
@@ -199,8 +200,41 @@ export default {
         console.log(error);
       }
     },
+    async downloadCsv() {
+      try{
+        const createCsv = await fetch(location.origin + '/create-closed-service-request-csv')
+        if (createCsv.ok){
+          const task_id = ( await createCsv.json()).task_id 
+          console.log(task_id)
+
+          const interval = setInterval(async() => {
+            try{
+              const getCsv = await fetch(location.origin + `/get-csv/${task_id}`)
+              if (getCsv.ok){
+                window.open(`${location.origin}/get-csv/${task_id}`)
+                this.showAlert('downloaded Sucessfully')
+                clearInterval(interval)
+              }else{
+                const data = await getCsv.json()
+                console.log(data.result)
+              }
+
+            }
+            catch(error){
+              console.log('something went wrong',error)
+            }
+          }, 100);
+
+        }else{
+          const data = createCsv.json()
+          console.log(data)
+        }
+      }catch{
+        console.log('something went wrog')
+      }
+    },
     search() {
-      const query = this.searchQuery.toLowerCase(); // Make the query case-insensitive
+      const query = this.searchQuery.toLowerCase(); 
 
       if(query === ''){
         this.filteredServices=this.services;

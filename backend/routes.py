@@ -1,8 +1,17 @@
-from flask import current_app as app, request, jsonify, render_template, send_from_directory
-from flask_security import auth_required, verify_password, hash_password
-from .model import db, Professional,Roles
+from flask import (
+    current_app as app,
+    request,
+    jsonify,
+    render_template,
+    send_from_directory,
+    send_file,
+)
+from flask_security import auth_required, verify_password, hash_password, login_user
+from .model import db, Professional, Roles
 from backend.useful_fun import *
 import uuid
+from backend.celery.tasks import create_csv
+from celery.result import AsyncResult
 
 datastore = app.security.datastore
 
@@ -10,6 +19,22 @@ datastore = app.security.datastore
 @app.route("/", methods=["GET"])
 def homepage():
     return render_template("index.html")
+
+
+@app.get("/create-closed-service-request-csv")
+def createCsv():
+    task = create_csv.delay()
+    return {"task_id": task.id}, 200
+
+
+@app.get("/get-csv/<id>")
+def getCsv(id):
+    result = AsyncResult(id)
+
+    if result.ready():
+        return send_file(f"./backend/celery/csv_files/{result.result}"), 200
+    else:
+        return {"result": "task not ready"}, 405
 
 
 @app.route("/login", methods=["POST"])
@@ -30,7 +55,9 @@ def login():
 
         if not user.active:
             return jsonify({"error": "Your account is banned or inactive."}), 403
-        
+
+        login_user(user)
+
         return jsonify(
             {
                 "token": user.get_auth_token(),
@@ -71,10 +98,11 @@ def register():
                 name=name,
                 phone=phone,
                 address=address,
-                pincode=pincode
+                pincode=pincode,
             )
         else:
-            prof = Professional(email=email,
+            prof = Professional(
+                email=email,
                 password=hash_password(password),
                 name=name,
                 phone=phone,
@@ -85,7 +113,7 @@ def register():
                 file_path=file_path,
                 experience=exp,
                 active=0,
-                )
+            )
             prof_role = Roles.query.filter_by(name="professional").first()
             prof.roles.append(prof_role)
             db.session.add(prof)
@@ -95,5 +123,3 @@ def register():
     except:
         db.session.rollback()
         return jsonify({"message": "user creation failed"}), 500
-    
-

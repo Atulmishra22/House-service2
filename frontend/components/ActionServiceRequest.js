@@ -45,13 +45,13 @@ export default {
                         <button v-if="service_request.service_status.toLowerCase() === 'accepted'" data-bs-toggle="modal" data-bs-target="#close-form" @click="showRequestDetails(service_request)" class="btn btn-secondary m-1">Close</button>
                         <button v-if="service_request.service_status.toLowerCase() === 'requested' || service_request.service_status.toLowerCase() === 'accepted' " @click="updateServiceStatus(service_request.id,'cancel')" class="btn btn-danger m-1">Cancel</button>
                         <button v-if="service_request.service_status.toLowerCase() === 'requested'" data-bs-toggle="modal" @click="showRequestDetails(service_request)" data-bs-target="#request-update-form" class="btn btn-warning m-1">Update</button>
-                        <button v-if="service_request.service_status.toLowerCase() === 'close' || service_request.service_status.toLowerCase() === 'cancel' || service_request.service_status.toLowerCase() === 'rejected' " @click="updateServiceStatus(service_request.id)" class="btn btn-danger"><i class="fa-solid fa-trash me-1"></i>Delete</button>
+                        <button v-if="service_request.service_status.toLowerCase() === 'closed' || service_request.service_status.toLowerCase() === 'cancel' || service_request.service_status.toLowerCase() === 'rejected' " @click="updateServiceStatus(service_request.id)" class="btn btn-danger"><i class="fa-solid fa-trash me-1"></i>Delete</button>
                       </div>
                       <div v-if="$store.state.role === 'professional'" class="col-3 text-center">
                         <button v-if="service_request.service_status.toLowerCase() === 'requested' " @click="updateServiceStatus(service_request.id,'accepted')" class="btn btn-warning m-1">Accept</button>
                         <h5 v-if="service_request.service_status.toLowerCase() === 'accepted' " class="text-primary"> {{service_request.service_status}}</h5>
                         <button v-if="service_request.service_status.toLowerCase() === 'requested' && service_request.professional_id " @click="updateServiceStatus(service_request.id,'rejected')" class="btn btn-danger m-1">Reject</button>
-                        <button v-if="service_request.service_status.toLowerCase() === 'close' || service_request.service_status.toLowerCase() === 'cancel' || service_request.service_status.toLowerCase() === 'rejected' " @click="updateServiceStatus(service_request.id)" class="btn btn-danger"><i class="fa-solid fa-trash me-1"></i>Delete</button>
+                        <button v-if="service_request.service_status.toLowerCase() === 'closed' || service_request.service_status.toLowerCase() === 'cancel' || service_request.service_status.toLowerCase() === 'rejected' " @click="updateServiceStatus(service_request.id)" class="btn btn-danger"><i class="fa-solid fa-trash me-1"></i>Delete</button>
                       </div>
                       
                     </div>
@@ -219,7 +219,7 @@ export default {
       const data = {
         rating: this.rating,
         remarks: this.remarks,
-        service_status: "close",
+        service_status: "closed",
       };
       this.rating = 0;
       this.remarks = "";

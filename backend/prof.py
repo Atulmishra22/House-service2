@@ -19,6 +19,7 @@ prof_fields = {
     "service_id": fields.Integer,
     "service_name": fields.String,
     "experience": fields.Integer,
+    "status": fields.String,
     "file_path": fields.String,
     "file_name": fields.String,
     "date_created": fields.String,
@@ -31,13 +32,10 @@ class ProfsAPI(Resource):
     @auth_required("token")
     @roles_accepted("admin", "customer")
     def get(self):
+        profs = Professional.query.all()
         if current_user.roles[0].name == "customer":
             profs = Professional.query.filter(Professional.active == True).all()
-        else:
-            profs = Professional.query.all()
 
-        if not profs:
-            return {"message": "Not Found"}, 404
         professionals = []
         for prof in profs:
             professional = {
@@ -51,6 +49,7 @@ class ProfsAPI(Resource):
                 "service_id": prof.service_id,
                 "service_name": prof.service.name,
                 "experience": prof.experience,
+                "status": prof.status,
                 "file_path": prof.file_path,
                 "file_name": os.path.basename(prof.file_path),
                 "date_created": formatTime(prof.date_created),
@@ -121,6 +120,7 @@ class ProfAPI(Resource):
             return {"message": "Not Found"}, 404
         try:
             db.session.delete(prof)
+            db.session.commit()
             return make_response(jsonify({"message": "Deleted Sucessfully"}), 200)
         except:
             db.session.rollback()
@@ -150,8 +150,9 @@ class professionalFile(Resource):
         data = request.get_json()
         try:
             prof.active = data.get("active")
+            prof.status = data.get("status")
             db.session.commit()
-            return make_response(jsonify({"message": f"{prof.name} is banned"}), 200)
+            return make_response(jsonify({"message": f"{prof.name} is {prof.status}"}), 200)
         except:
             db.session.rollback()
             return make_response(jsonify({"mesaage": "something went wrong"}), 500)

@@ -42,6 +42,7 @@ class Professional(Users):
     id = db.Column(db.Integer, db.ForeignKey("users.id"), primary_key=True)
     service_id = db.Column(db.Integer, db.ForeignKey("service.id"), nullable=False)
     date_created = db.Column(db.DateTime, default=datetime.now, nullable=False)
+    status = db.Column(db.String, default="pending", nullable=False)
     experience = db.Column(db.Integer, nullable=False)
     file_path = db.Column(db.String, nullable=True)
     service_requests = db.relationship(

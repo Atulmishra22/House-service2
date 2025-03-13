@@ -14,7 +14,7 @@ export default {
             </div>
             <div class="searchbar">
               <form class="d-flex" role="search">
-                <input class="form-control m-2" v-model="searchQuery" type="search" @keydown.enter="search" id="searchbar" placeholder="Search">
+                <input class="form-control m-2" v-model="searchQuery" type="search" @input="search" id="searchbar" placeholder="Search">
                 <button class="btn btn-primary my-2" @click="search" type="submit">Search</button>
               </form>
             </div>
@@ -69,7 +69,7 @@ export default {
         <div class="servcie-request container-fluid">
           <h3 class="mt-3 ps-4 bg-warning rounded-1 "> All SERVICE: </h3>
           <div class="container mt-2">
-              <ActionServiceRequest :service_requests=allRequests @showAlert=showAlert @refreshRequest=fetchRequestDetail  />
+              <ActionServiceRequest :service_requests=fileterdData @showAlert=showAlert @refreshRequest=fetchRequestDetail  />
           </div>
         </div>
         
@@ -89,6 +89,7 @@ export default {
         acceptedRequests:[],
         closedRequests:[],
         allRequests:[],
+        fileterdData:[],
       }
     },
     mounted() {
@@ -139,7 +140,8 @@ export default {
           if (res.ok) {
             const data = await res.json();
             this.allRequests = data;
-            this.allRequests.forEach((request) => {
+            this.fileterdData = this.allRequests;
+            this.fileterdData.forEach((request) => {
               if (request.service_status === 'accepted') {
                 this.acceptedRequests.push(request);
               } else if (request.service_status === 'closed' || request.service_status === 'rejected') {
@@ -150,6 +152,20 @@ export default {
         } catch (error) {
           console.log(error);
         }
+      },
+      search() {
+        const query = this.searchQuery.toLowerCase(); 
+  
+        if (query === "") {
+          this.fileterdData = this.allRequests;
+        }
+        this.fileterdData = this.allRequests.filter(
+          (service_request) =>
+            service_request.professional_name
+              ? service_request.professional_name.toLowerCase().includes(query)
+              : false ||
+                service_request.customer_name.toLowerCase().includes(query)
+        );
       },
     }
 };

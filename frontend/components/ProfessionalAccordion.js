@@ -42,9 +42,11 @@ export default {
                         </div>
                         </div>
                         <div class="col-2">
-                          <button v-if="professional.active" @click="professionalStatus(professional.id,false)" class="btn btn-secondary me-1"> Block</button>
-                          <button v-else @click="professionalStatus(professional.id,true)" class="btn btn-primary m-1"> Approve</button>
-                          <button @click="deleteProfessional(professional.id)" class="btn btn-danger"><i class="fa-solid fa-trash"></i> Delete</button>
+                          <button v-if="professional.status ==='approved'" @click="professionalStatus(professional.id,'blocked')" class="btn btn-danger me-1"> Block</button>
+                          <button v-if="professional.status ==='pending'" @click="professionalStatus(professional.id,'approved')" class="btn btn-primary m-1"> Approve </button>
+                          <button v-if="professional.status ==='pending'" @click="professionalStatus(professional.id,'rejected')" class="btn btn-danger m-1"> Reject </button>
+                          <button v-if="professional.status ==='blocked' || professional.status ==='rejected'" @click="deleteProfessional(professional.id)" class="btn btn-danger m-1"><i class="fa-solid fa-trash"></i> Delete</button>
+                          <button v-if="professional.status ==='blocked' || professional.status ==='rejected'" @click="professionalStatus(professional.id,'approved')" class="btn btn-warning">Unblock</button>
                         </div>
                         
                       </div>
@@ -99,6 +101,10 @@ export default {
                           <td>{{ selectedProfessional.date_created }}</td>
                         </tr>
                         <tr>
+                          <th> status:</th>
+                          <td>{{ selectedProfessional.status }}</td>
+                        </tr>
+                        <tr>
                           <th> Active:</th>
                           <td>{{ selectedProfessional.active }}</td>
                         </tr>
@@ -135,8 +141,7 @@ export default {
     showProfessionalDetails(professional) {
       this.selectedProfessional = professional;
       this.professionalPdf(professional.file_name);
-      // this.file_url =
-      //   location.origin + `/api/verification/${professional.file_name}`;
+      
     },
 
     async professionalPdf(filename) {
@@ -181,8 +186,13 @@ export default {
     },
     async professionalStatus(id, status) {
       const data = {
-        active: status,
+        status: status,
       };
+      if(status === 'approved'){
+        data['active'] = 1;
+      }else if (['rejected','blocked'].includes(status)){
+        data['active'] = 0;
+      }
       try {
         const res = await fetch(
           location.origin + `/api/professionals/status/${id}`,
