@@ -11,6 +11,7 @@ class LocalConfig(Config):
     SECURITY_PASSWORD_SALT = "nowibecomeinsane"
     SECRET_KEY = "thisshouldnotsame"
     SECURITY_TOKEN_AUTHENTICATION_HEADER = "Auth"
+    SECURITY_TOKEN_MAX_AGE = 3600
 
     CACHE_TYPE = "RedisCache"
     CACHE_DEFAULT_TIMEOUT = 30

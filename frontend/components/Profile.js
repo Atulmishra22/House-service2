@@ -15,16 +15,16 @@ export default {
             <label for="phone" class="form-label">Phone:</label>
             <input type="number" class="form-control" v-model="userDetails.phone" id="phone"  required>
             </div>
-            <div class="mb-3">
-            <label v-if="$store.state.role === 'professional'" for="service" class="form-label">Service:</label>
+            <div v-if="$store.state.role === 'professional'" class="mb-3">
+            <label  for="service" class="form-label">Service:</label>
             <input type="text" class="form-control bg-light" v-model="userDetails.service_name" id="service" readonly required>
             </div>
-            <div class="mb-3">
-            <label v-if="$store.state.role === 'professional'" for="experience" class="form-label">Experience:</label>
+            <div v-if="$store.state.role === 'professional'" class="mb-3">
+            <label  for="experience" class="form-label">Experience:</label>
             <input type="number" class="form-control" v-model="userDetails.experience" id="experience" required>
             </div>
-            <div class="mb-3">
-            <label v-if="$store.state.role === 'professional'" for="date-created" class="form-label">Date of Creation:</label>
+            <div v-if="$store.state.role === 'professional'" class="mb-3">
+            <label  for="date-created" class="form-label">Date of Creation:</label>
             <input type="text" class="form-control bg-light" v-model="userDetails.date_created" id="date-created" readonly required>
             </div>
             <div class="mb-3">
@@ -35,7 +35,7 @@ export default {
             <label for="pincode" class="form-label">Pincode:</label>
             <input type="number" class="form-control" v-model="userDetails.pincode" id="pincode" required>
             </div>
-            <button type="submit" class="btn btn-primary me-1" data-bs-dismiss="modal">Modify</button>
+            <button type="submit" class="btn btn-primary me-1">Modify</button>
         </form>
     </div>
     `,

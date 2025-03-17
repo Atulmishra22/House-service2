@@ -32,10 +32,11 @@ class ProfsAPI(Resource):
     @auth_required("token")
     @roles_accepted("admin", "customer")
     def get(self):
-        profs = Professional.query.all()
+
         if current_user.roles[0].name == "customer":
             profs = Professional.query.filter(Professional.active == True).all()
-
+        else:
+            profs = Professional.query.all()
         professionals = []
         for prof in profs:
             professional = {
@@ -68,7 +69,7 @@ class ProfAPI(Resource):
         prof = Professional.query.get(id)
         if not prof:
             return {"message": "Not Found"}, 404
-        
+
         professional = {
             "id": prof.id,
             "name": prof.name,
@@ -84,7 +85,6 @@ class ProfAPI(Resource):
             "date_created": formatTime(prof.date_created),
         }
 
-            
         return professional
 
     @auth_required("token")
@@ -152,7 +152,9 @@ class professionalFile(Resource):
             prof.active = data.get("active")
             prof.status = data.get("status")
             db.session.commit()
-            return make_response(jsonify({"message": f"{prof.name} is {prof.status}"}), 200)
+            return make_response(
+                jsonify({"message": f"{prof.name} is {prof.status}"}), 200
+            )
         except:
             db.session.rollback()
             return make_response(jsonify({"mesaage": "something went wrong"}), 500)

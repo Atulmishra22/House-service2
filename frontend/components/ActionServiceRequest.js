@@ -27,7 +27,7 @@ export default {
               <div v-else class="accordion-body">
                     <div v-for="service_request in service_requests" :key="service_request.id" class="conatiner row border border-primary p-1 lead rounded mb-1">
                       <div class="col-1 text-center">
-                          <button data-bs-toggle="modal" data-bs-target="#service-requestDetail" class="fw-bold btn btn-outline-info" :value="service_request.id" @click="showRequestDetails(service_request)" >{{service_request.id}}</button>
+                          <button data-bs-toggle="modal" data-bs-target="#action-request-modal" class="fw-bold btn btn-outline-info" :value="service_request.id" @click="setParticularRequest(service_request)" >{{service_request.id}}</button>
                       </div>
                       <div class="col-2 text-center">
                           <p >{{service_request.customer_name}}</p>
@@ -42,16 +42,16 @@ export default {
                           <p v-if="service_request.service_status" >{{service_request.service_status.toUpperCase() }}</p>
                       </div>
                       <div v-if="$store.state.role === 'customer'" class="col-3 text-center">
-                        <button v-if="service_request.service_status.toLowerCase() === 'accepted'" data-bs-toggle="modal" data-bs-target="#close-form" @click="showRequestDetails(service_request)" class="btn btn-secondary m-1">Close</button>
-                        <button v-if="service_request.service_status.toLowerCase() === 'requested' || service_request.service_status.toLowerCase() === 'accepted' " @click="updateServiceStatus(service_request.id,'cancel')" class="btn btn-danger m-1">Cancel</button>
-                        <button v-if="service_request.service_status.toLowerCase() === 'requested'" data-bs-toggle="modal" @click="showRequestDetails(service_request)" data-bs-target="#request-update-form" class="btn btn-warning m-1">Update</button>
-                        <button v-if="service_request.service_status.toLowerCase() === 'closed' || service_request.service_status.toLowerCase() === 'cancel' || service_request.service_status.toLowerCase() === 'rejected' " @click="updateServiceStatus(service_request.id)" class="btn btn-danger"><i class="fa-solid fa-trash me-1"></i>Delete</button>
+                        <button v-if="service_request.service_status.toLowerCase() === 'accepted'" data-bs-toggle="modal" data-bs-target="#close-form" @click="setParticularRequest(service_request)" class="btn btn-secondary m-1">Close</button>
+                        <button v-if="service_request.service_status.toLowerCase() === 'requested' || service_request.service_status.toLowerCase() === 'accepted' " @click="updateServiceStatus(service_request.id,'canceled')" class="btn btn-danger m-1">Cancel</button>
+                        <button v-if="service_request.service_status.toLowerCase() === 'requested'" data-bs-toggle="modal" @click="setParticularRequest(service_request)" data-bs-target="#request-update-form" class="btn btn-warning m-1">Update</button>
+                        <button v-if="service_request.service_status.toLowerCase() === 'closed' || service_request.service_status.toLowerCase() === 'canceled' || service_request.service_status.toLowerCase() === 'rejected' " @click="deleteRequest(service_request.id)" class="btn btn-danger"><i class="fa-solid fa-trash me-1"></i>Delete</button>
                       </div>
                       <div v-if="$store.state.role === 'professional'" class="col-3 text-center">
                         <button v-if="service_request.service_status.toLowerCase() === 'requested' " @click="updateServiceStatus(service_request.id,'accepted')" class="btn btn-warning m-1">Accept</button>
                         <h5 v-if="service_request.service_status.toLowerCase() === 'accepted' " class="text-primary"> {{service_request.service_status}}</h5>
                         <button v-if="service_request.service_status.toLowerCase() === 'requested' && service_request.professional_id " @click="updateServiceStatus(service_request.id,'rejected')" class="btn btn-danger m-1">Reject</button>
-                        <button v-if="service_request.service_status.toLowerCase() === 'closed' || service_request.service_status.toLowerCase() === 'cancel' || service_request.service_status.toLowerCase() === 'rejected' " @click="updateServiceStatus(service_request.id)" class="btn btn-danger"><i class="fa-solid fa-trash me-1"></i>Delete</button>
+                        <button v-if="service_request.service_status.toLowerCase() === 'closed' || service_request.service_status.toLowerCase() === 'canceled' || service_request.service_status.toLowerCase() === 'rejected' " @click="deleteRequest(service_request.id)" class="btn btn-danger"><i class="fa-solid fa-trash me-1"></i>Delete</button>
                       </div>
                       
                     </div>
@@ -69,31 +69,31 @@ export default {
                     <form @submit.prevent="updateRequest" >
                         <div class="mb-3">
                         <label for="service-id" class="form-label">Service ID:</label>
-                        <input type="number" class="form-control" v-model="selectedRequest.id" id="service-id" readonly  required>
+                        <input type="number" class="form-control" v-model="particularRequest.id" id="service-id" readonly  required>
                         </div>
                         <div class="mb-3">
                         <label for="customer-name" class="form-label">Customer Name:</label>
-                        <input type="text" class="form-control" v-model="selectedRequest.customer_name" id="customer-name" readonly  required>
+                        <input type="text" class="form-control" v-model="particularRequest.customer_name" id="customer-name" readonly  required>
                         </div>
-                        <div v-if="selectedRequest.professional_id" class="mb-3">
+                        <div v-if="particularRequest.professional_id" class="mb-3">
                         <label for="profesional-name" class="form-label">Professional Name:</label>
-                        <input type="text" class="form-control" v-model="selectedRequest.professional_name" id="profesional-name" readonly  required>
+                        <input type="text" class="form-control" v-model="particularRequest.professional_name" id="profesional-name" readonly  required>
                         </div>
                         <div class="mb-3">
                         <label for="service" class="form-label">Service:</label>
-                        <input type="text" class="form-control" v-model="selectedRequest.service_name" id="service" readonly  required>
+                        <input type="text" class="form-control" v-model="particularRequest.service_name" id="service" readonly  required>
                         </div>
                         <div class="mb-3">
                         <label for="request-date" class="form-label">Request Date:</label>
-                        <input type="datetime-local" class="form-control" v-model="selectedRequest.date_of_request" id="request-date" required>
+                        <input type="datetime-local" class="form-control" v-model="particularRequest.date_of_request" id="request-date" required>
                         </div>
                         <div class="mb-3">
                         <label for="completion-date" class="form-label">Completion Time:</label>
-                        <input type="datetime-local" class="form-control" v-model="selectedRequest.date_of_completion" id="completion-date" required>
+                        <input type="datetime-local" class="form-control" v-model="particularRequest.date_of_completion" id="completion-date" required>
                         </div>
                         <div class="mb-3">
                         <label for="remarks" class="form-label">Remarks:</label>
-                        <input type="text" class="form-control" v-model="selectedRequest.remarks" id="remarks" required>
+                        <input type="text" class="form-control" v-model="particularRequest.remarks" id="remarks" required>
                         </div>
                         <button type="submit" class="btn btn-primary me-1" data-bs-dismiss="modal">Modify</button>
                     </form>
@@ -104,7 +104,7 @@ export default {
                 </div>
             </div>
         </div>
-        <div class="modal fade" id="service-requestDetail" tabindex="-1" >
+        <div class="modal fade" id="action-request-modal" tabindex="-1" >
             <div class="modal-dialog modal-dialog-centered">
               <div class="modal-content">
                 <div class="modal-header">
@@ -114,42 +114,42 @@ export default {
                 <div class="modal-body">
                   <div class="card shadow">
                     <div v-if="$store.state.role === 'customer'" class="card-header text-center">
-                      {{ selectedRequest.customer_name }}
+                      {{ particularRequest.customer_name }}
                     </div>
                     <div class="card-body">
                     <table class="table border border-primary">
                     <tbody>
                       <tr>
                         <th> Request ID:</th>
-                        <td>{{ selectedRequest.id }}</td>
+                        <td>{{ particularRequest.id }}</td>
                       </tr>
                       <tr>
                         <th> Professional Name:</th>
-                        <td>{{ selectedRequest.professional_name }}</td>
+                        <td>{{ particularRequest.professional_name }}</td>
                       </tr>
                       <tr>
                         <th> Request Date:</th>
-                        <td>{{ selectedRequest.date_of_request }}</td>
+                        <td>{{ dateFormatter(particularRequest.date_of_request) }}</td>
                       </tr>
                       <tr>
                         <th> completion Date:</th>
-                        <td>{{ selectedRequest.date_of_completion }}</td>
+                        <td>{{ dateFormatter(particularRequest.date_of_completion) }}</td>
                       </tr>
                       <tr>
                         <th> Service status:</th>
-                        <td>{{ selectedRequest.service_name }}</td>
+                        <td>{{ particularRequest.service_name }}</td>
                       </tr>
                       <tr>
                         <th> Service status:</th>
-                        <td>{{ selectedRequest.service_status }}</td>
+                        <td>{{ particularRequest.service_status }}</td>
                       </tr>
                       <tr>
                         <th> Remarks:</th>
-                        <td>{{ selectedRequest.remarks }}</td>
+                        <td>{{ particularRequest.remarks }}</td>
                       </tr>
                       <tr>
                         <th> Ratings:</th>
-                        <td>{{ selectedRequest.rating }}</td>
+                        <td>{{ particularRequest.rating }}</td>
                       </tr>
                     </tbody>
                     </table>
@@ -173,7 +173,7 @@ export default {
                   <form @submit.prevent="closeForm" >
                     <div class="mb-3">
                     <label for="service-id" class="form-label">Service ID:</label>
-                    <input type="number" class="form-control" v-model="selectedRequest.id"  id="service-id" readonly  required>
+                    <input type="number" class="form-control" v-model="particularRequest.id"  id="service-id" readonly  required>
                     </div>
                     <div class="mb-3">
                     <label>Rating:</label>
@@ -201,20 +201,30 @@ export default {
 
   data() {
     return {
-      selectedRequest: {},
+      particularRequest: {},
       rating: 0,
       remarks: "",
     };
   },
 
   methods: {
-    showRequestDetails(service_request) {
-      this.selectedRequest = service_request;
+    setParticularRequest(service_request) {
+      this.particularRequest = service_request;
     },
     updatedRating(rating) {
       this.rating = rating;
     },
-
+    dateFormatter(datetime) {
+      return new Date(datetime).toLocaleString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+      });
+    },
     async closeForm() {
       const data = {
         rating: this.rating,
@@ -226,7 +236,8 @@ export default {
       console.log(data);
       try {
         const res = await fetch(
-          location.origin + `/api/service_requests/${this.selectedRequest.id}`,
+          location.origin +
+            `/api/service_requests/${this.particularRequest.id}`,
           {
             method: "PUT",
             headers: {
@@ -273,17 +284,18 @@ export default {
       }
     },
     async updateRequest() {
-      this.selectedRequest.service_status = "";
+      this.particularRequest.service_status = "";
       try {
         const res = await fetch(
-          location.origin + `/api/service_requests/${this.selectedRequest.id}`,
+          location.origin +
+            `/api/service_requests/${this.particularRequest.id}`,
           {
             method: "PUT",
             headers: {
               Auth: this.$store.state.auth_token,
               "Content-Type": "application/json",
             },
-            body: JSON.stringify(this.selectedRequest),
+            body: JSON.stringify(this.particularRequest),
           }
         );
         if (res.ok) {

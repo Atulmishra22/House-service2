@@ -47,7 +47,7 @@ export default {
             </div>
         </div>
         </div>
-        <div class="col-8 col-lg-4 col-xl-3">
+        <div class="col-8 col-lg-4 col-xl-3 p-2">
         <div class="card border-primary">
             <div class="card-header text-center">Plumbing</div>
             <div class="card-body text-center">
@@ -57,7 +57,7 @@ export default {
             </div>
         </div>
         </div>
-        <div class="col-8 col-lg-4 col-xl-3">
+        <div class="col-8 col-lg-4 col-xl-3 p-2">
         <div class="card border-primary">
             <div class="card-header text-center">AC repair</div>
             <div class="card-body text-center">
@@ -67,7 +67,7 @@ export default {
             </div>
         </div>
         </div>
-        <div class="col-8 col-lg-4 col-xl-3">
+        <div class="col-8 col-lg-4 col-xl-3 p-2">
         <div class="card border-primary">
             <div class="card-header text-center">Electricial</div>
             <div class="card-body text-center">
@@ -77,7 +77,7 @@ export default {
             </div>
         </div>
         </div>
-        <div class="col-8 col-lg-4 col-xl-3">
+        <div class="col-8 col-lg-4 col-xl-3 p-2">
         <div class="card border-primary">
             <div class="card-header text-center">TV Repair</div>
             <div class="card-body text-center">

@@ -10,9 +10,9 @@ export default {
             <div class="link d-flex">
               <router-link to="/professional-dashboard" class="d-block text-decoration-none text-dark p-3 "><i class="fas fa-tachometer-alt me-2"></i>Professional Dashboard </router-link>
               <a class="d-block btn  text-dark p-3" data-bs-toggle="modal" data-bs-target="#profile"><i class="fa-solid fa-user me-1"></i> Profile </a>
-              <router-link to="/" class="d-block text-decoration-none text-dark p-3"><i class="fas fa-rocket me-2"></i> Summary </router-link>
+              <router-link to="/professional-dashboard/summary" class="d-block text-decoration-none text-dark p-3"><i class="fas fa-rocket me-2"></i> Summary </router-link>
             </div>
-            <div class="searchbar">
+            <div v-if="!$route.path.includes('/summary')" class="searchbar">
               <form class="d-flex" role="search">
                 <input class="form-control m-2" v-model="searchQuery" type="search" @input="search" id="searchbar" placeholder="Search">
                 <button class="btn btn-primary my-2" @click="search" type="submit">Search</button>
@@ -34,6 +34,7 @@ export default {
           </div>
         </div>
       </div>
+      
 
       <div class="modal fade" id="profile" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
@@ -51,121 +52,135 @@ export default {
         </div>
       </div>
 
-      <div class="mt-3 container-fluid">
-        <div class="servcie-request container-fluid">
-          <h3 class="ps-4 bg-warning rounded-1 "> ACCEPETED SERVICE: </h3>
-          <div class="container mt-2">
-              <ServiceRequest :service_requests=acceptedRequests  />
-          </div>
-        </div>
+      <router-view v-if="$route.path.includes('/summary')"></router-view>
 
-        <div class="servcie-request container-fluid">
-          <h3 class="mt-3 ps-4 bg-warning rounded-1 "> CLOSED SERVICE: </h3>
-          <div class="container mt-2">
-              <ServiceRequest :service_requests=closedRequests  />
+      <div v-if="!$route.path.includes('/summary')">
+        <div class="mt-3 container-fluid">
+          <div class="servcie-request container-fluid">
+            <h3 class="ps-4 bg-warning rounded-1 "> ACCEPETED SERVICE: </h3>
+            <div class="container mt-2">
+                <ServiceRequest :service_requests=acceptedRequests  :purpose="'accepted'" />
+            </div>
           </div>
-        </div>
 
-        <div class="servcie-request container-fluid">
-          <h3 class="mt-3 ps-4 bg-warning rounded-1 "> All SERVICE: </h3>
-          <div class="container mt-2">
-              <ActionServiceRequest :service_requests=fileterdData @showAlert=showAlert @refreshRequest=fetchRequestDetail  />
+          <div class="servcie-request container-fluid">
+            <h3 class="mt-3 ps-4 bg-warning rounded-1 "> CLOSED SERVICE: </h3>
+            <div class="container mt-2">
+                <ServiceRequest :service_requests=closedRequests :purpose="'closed'" />
+            </div>
+          </div>
+
+          <div class="servcie-request container-fluid">
+            <h3 class="mt-3 ps-4 bg-warning rounded-1 "> All SERVICE: </h3>
+            <div class="container mt-2">
+                <ActionServiceRequest :service_requests=fileterdData @showAlert=showAlert @refreshRequest=fetchRequestDetail  />
+            </div>
           </div>
         </div>
-        
       </div>
+      <footer class="mt-4">
+      </footer>
 
       
         
     </div>
     `,
-    components: { Profile , ServiceRequest , ActionServiceRequest },
-    data(){
-      return{
-        searchQuery:'',
-        successMessage:'',
-        professionalDetail:'',
-        alertBox:'',
-        acceptedRequests:[],
-        closedRequests:[],
-        allRequests:[],
-        fileterdData:[],
+  components: { Profile, ServiceRequest, ActionServiceRequest },
+  data() {
+    return {
+      searchQuery: "",
+      successMessage: "",
+      professionalDetail: "",
+      alertBox: "",
+      allRequests: [],
+      fileterdData: [],
+    };
+  },
+  mounted() {
+    this.fetchProfessionalDetail();
+    this.fetchRequestDetail();
+  },
+  computed: {
+    acceptedRequests() {
+      return this.fileterdData.filter(
+        (request) => request.service_status === "accepted"
+      );
+    },
+
+    closedRequests() {
+      return this.fileterdData.filter(
+        (request) =>
+          request.service_status === "closed" ||
+          request.service_status === "rejected" ||
+          (request.service_status === "canceled" &&
+            request.professional_id === this.$store.state.user_id)
+      );
+    },
+  },
+
+  methods: {
+    showAlert(message) {
+      this.alertBox = true;
+      this.successMessage = message;
+      setTimeout(() => {
+        this.alertBox = false;
+      }, 2000);
+    },
+
+    async fetchProfessionalDetail() {
+      try {
+        const res = await fetch(
+          location.origin + "/api/professionals/" + this.$store.state.user_id,
+          {
+            headers: {
+              Auth: this.$store.state.auth_token,
+            },
+          }
+        );
+        if (res.ok) {
+          const data = await res.json();
+          this.professionalDetail = data;
+          
+        }
+      } catch (error) {
+        console.log(error);
       }
     },
-    mounted() {
-      this.fetchProfessionalDetail();
-      this.fetchRequestDetail();
-    },
 
-    methods:{
-      search(){},
-
-      showAlert(message) {
-        this.alertBox = true;
-        this.successMessage = message;
-        setTimeout(() => {
-          this.alertBox = false;
-        }, 2000);
-      },
-
-      async fetchProfessionalDetail() {
-        try {
-          const res = await fetch(
-            location.origin + "/api/professionals/" + this.$store.state.user_id,
-            {
-              headers: {
-                Auth: this.$store.state.auth_token,
-              },
-            }
-          );
-          if (res.ok) {
-            const data = await res.json();
-            this.professionalDetail = data;
+    async fetchRequestDetail() {
+      try {
+        const res = await fetch(
+          location.origin +
+            "/api/service_requests/professional/" +
+            this.$store.state.user_id,
+          {
+            headers: {
+              Auth: this.$store.state.auth_token,
+            },
           }
-        } catch (error) {
-          console.log(error);
-        }
-      },
-
-      async fetchRequestDetail() {
-        try {
-          const res = await fetch(
-            location.origin + "/api/service_requests/professional/" + this.$store.state.user_id,
-            {
-              headers: {
-                Auth: this.$store.state.auth_token,
-              },
-            }
-          );
-          if (res.ok) {
-            const data = await res.json();
-            this.allRequests = data;
-            this.fileterdData = this.allRequests;
-            this.fileterdData.forEach((request) => {
-              if (request.service_status === 'accepted') {
-                this.acceptedRequests.push(request);
-              } else if (request.service_status === 'closed' || request.service_status === 'rejected') {
-                this.closedRequests.push(request);
-              }
-            });
-          }
-        } catch (error) {
-          console.log(error);
-        }
-      },
-      search() {
-        const query = this.searchQuery.toLowerCase(); 
-  
-        if (query === "") {
+        );
+        if (res.ok) {
+          const data = await res.json();
+          this.allRequests = data;
           this.fileterdData = this.allRequests;
         }
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    search() {
+      const query = this.searchQuery.toLowerCase();
+
+      if (query === "") {
+        this.fileterdData = this.allRequests;
+      } else {
         this.fileterdData = this.allRequests.filter(
-          (service_request) =>
-            service_request.professional_name
-              ? service_request.professional_name.toLowerCase().includes(query)
-              : false ||
-                service_request.customer_name.toLowerCase().includes(query)
+          (request) =>
+            request.professional_name.toLowerCase().includes(query) ||
+            request.customer_name.toLowerCase().includes(query) ||
+            request.service_status.toLowerCase().includes(query)
         );
-      },
-    }
+      }
+    },
+  },
 };

@@ -1,5 +1,5 @@
 export default {
-    props :['service_requests'],
+    props :['service_requests','purpose'],
     template: `
       <div>
       <div class="sr-accordion">
@@ -7,7 +7,7 @@ export default {
       <div class="accordion">
           <div class="accordion-item">
               <h2 class="accordion-header">
-              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#service-requests">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" :data-bs-target="'#service-requests-'+purpose">
                   <div class="container row">
                       <h4 class="col text-center">ID</h4>
                       <h4 class="col text-center">Customer name</h4>
@@ -17,14 +17,14 @@ export default {
                   </div>
               </button>
               </h2>
-              <div id="service-requests" class="accordion-collapse collapse show">
+              <div :id="'service-requests-'+purpose" class="accordion-collapse collapse show">
               <div v-if="service_requests.length === 0" class="accordion-body">
                   <h4>No Data Available</h4>
               </div>
               <div v-else class="accordion-body">
                     <div v-for="service_request in service_requests" :key="service_request.id" class="conatiner row border border-primary p-1 lead rounded mb-1">
                       <div class="col text-center">
-                          <button data-bs-toggle="modal" data-bs-target="#service-requestDetail" class="fw-bold btn btn-outline-info" :value="service_request.id" @click="showRequestDetails(service_request)" >{{service_request.id}}</button>
+                          <button data-bs-toggle="modal" :data-bs-target="'#'+purpose" class="fw-bold btn btn-outline-info" :value="service_request.id" @click="showRequestDetails(service_request)" >{{service_request.id}}</button>
                       </div>
                       <div class="col text-center">
                           <p >{{service_request.customer_name}}</p>
@@ -43,11 +43,11 @@ export default {
               </div>
               </div>
           </div>
-          <div class="modal fade" id="service-requestDetail" tabindex="-1" >
+          <div class="modal fade" :id="purpose" tabindex="-1" >
             <div class="modal-dialog modal-dialog-centered">
               <div class="modal-content">
                 <div class="modal-header">
-                  <h1 class="modal-title fs-5" id="exampleModalLabel">Request Detail</h1>
+                  <h1 class="modal-title fs-5">Request Detail</h1>
                   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">

@@ -44,7 +44,7 @@ app = createApp()
 
 excel.init_excel(app)
 celery_app = celery_init_app(app)
-
+import backend.celery.celery_sheduler
 import backend.initial_data
 from backend.routes import *
 

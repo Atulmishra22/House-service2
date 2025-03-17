@@ -36,7 +36,7 @@ export default {
             <label for="remarks" class="form-label">Remarks:</label>
             <input type="text" class="form-control" v-model="remarks" id="remarks" required>
             </div>
-            <button type="submit" class="btn btn-primary me-1" data-bs-dismiss="modal">Submit</button>
+            <button type="submit" class="btn btn-primary me-1">Submit</button>
         </form>
     </div>
     `,

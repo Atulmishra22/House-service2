@@ -11,6 +11,6 @@ const app = Vue.createApp({
   </div>
   `,
 });
-app.use(store)
+app.use(store);
 app.use(router);
 app.mount("#app");

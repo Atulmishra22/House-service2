@@ -59,8 +59,6 @@ export default {
 
         if (res.ok) {
           const userData = await res.json();
-          console.log('Logged in successfully', userData);
-
           localStorage.setItem('user',JSON.stringify(userData))
           this.$store.commit('setUser')
           if(userData.role === 'admin'){

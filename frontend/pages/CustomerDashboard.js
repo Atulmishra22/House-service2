@@ -9,11 +9,11 @@ export default {
             <div class="d-flex justify-content-between shadow-lg text-bg-light">
                 <div class="link d-flex">
                 <router-link to="/customer-dashboard" class="d-block text-decoration-none text-dark p-3 "><i class="fas fa-tachometer-alt me-2"></i>Customer Dashboard </router-link>
-                <a class="d-block btn  text-dark p-3" data-bs-toggle="modal" data-bs-target="#profile"><i class="fa-solid fa-user me-1"></i> Profile </a>
-                <a class="d-block btn  text-dark p-3" data-bs-toggle="modal" data-bs-target="#add-request"><i class="fa-solid fa-file-circle-plus"></i> Add Request </a>
-                <router-link to="/" class="d-block text-decoration-none text-dark p-3"><i class="fas fa-rocket me-2"></i> Summary </router-link>
+                <a v-if="!$route.path.includes('/summary')" class="d-block btn  text-dark p-3" data-bs-toggle="modal" data-bs-target="#profile"><i class="fa-solid fa-user me-1"></i> Profile </a>
+                <a v-if="!$route.path.includes('/summary')" class="d-block btn  text-dark p-3" data-bs-toggle="modal" data-bs-target="#add-request"><i class="fa-solid fa-file-circle-plus"></i> Add Request </a>
+                <router-link to="/customer-dashboard/summary" class="d-block text-decoration-none text-dark p-3"><i class="fas fa-rocket me-2"></i> Summary </router-link>
                 </div>
-                <div class="searchbar">
+                <div v-if="!$route.path.includes('/summary')" class="searchbar">
                 <form class="d-flex" role="search">
                 <input class="form-control m-2" v-model="searchQuery" type="search" @keydown.enter="search" id="searchbar" placeholder="Search">
                 <button class="btn btn-primary my-2" @click="search" type="submit">Search</button>
@@ -21,7 +21,9 @@ export default {
                 </div>
             </div>
         </div>
+        <router-view v-if="$route.path.includes('/summary')"></router-view>
 
+        <div v-if="!$route.path.includes('/summary')">
         <div class="container row mt-4">
             <div class="col-4">
             <h4>Welcome <span class="text-primary">{{customer_details.name}}</span> </h4>
@@ -186,10 +188,12 @@ export default {
             </div>
         </div>
         <div class="servcie-request container-fluid">
-        <h3 class="mt-4 ps-4 bg-warning rounded-1 "> Service Request </h3>
-        <div class="container mt-2">
-            <ActionServiceRequest :service_requests=filteredServicesRequest @showAlert=showAlert @refreshRequest=refreshRequest />
+          <h3 class="mt-4 ps-4 bg-warning rounded-1 "> Service Request </h3>
+          <div class="container mt-2">
+              <ActionServiceRequest :service_requests=filteredServicesRequest @showAlert=showAlert @refreshRequest=refreshRequest />
+          </div>
         </div>
+        <div>
         </div>
         <footer class="mt-2">
             
@@ -197,7 +201,7 @@ export default {
         
         
 
-        
+    </div>
     </div>
     
     `,
@@ -302,7 +306,7 @@ export default {
         );
         if (res.ok) {
           const data = await res.json();
-          this.service_professionals = data;
+          this.service_professionals = data.sort((a, b) => b.rating - a.rating);
         }
       } catch (error) {
         console.log(error);

@@ -4,6 +4,7 @@ const store = Vuex.createStore({
     role: null,
     loggedIn: null,
     user_id: null,
+    professionalDetail:null,
   },
   mutations: {
     setUser(state) {
@@ -27,6 +28,7 @@ const store = Vuex.createStore({
       localStorage.removeItem('user');
       
     },
+    
   },
   action: {
 
