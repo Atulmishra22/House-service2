@@ -95,7 +95,7 @@ export default {
                         <label for="remarks" class="form-label">Remarks:</label>
                         <input type="text" class="form-control" v-model="particularRequest.remarks" id="remarks" required>
                         </div>
-                        <button type="submit" class="btn btn-primary me-1" data-bs-dismiss="modal">Modify</button>
+                        <button type="submit" class="btn btn-primary me-1">Modify</button>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -177,7 +177,7 @@ export default {
                     </div>
                     <div class="mb-3">
                     <label>Rating:</label>
-                    <Rating @rating=updatedRating />
+                    <Rating @rating=updatedRating :initialRating=rating />
                     </div>
                     <button type="submit" class="btn btn-primary me-1" data-bs-dismiss="modal">Submit</button>
                   </form>
@@ -228,11 +228,9 @@ export default {
     async closeForm() {
       const data = {
         rating: this.rating,
-        remarks: this.remarks,
         service_status: "closed",
       };
       this.rating = 0;
-      this.remarks = "";
       console.log(data);
       try {
         const res = await fetch(

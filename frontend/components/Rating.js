@@ -12,11 +12,17 @@ export default{
     </div>
     
   `,
+  props:['initialRating'],
   data(){
     return{
-        rating: 0,      
+        rating: this.initialRating,      
         totalStars: 5,  
     }
+  },
+  watch:{
+    initialRating(newVal){
+      this.rating = newVal
+    },
   },
   methods:{
     setRating(star) {

@@ -1,9 +1,11 @@
 from backend.model import db, ServiceRequest, Professional
 from flask_security import auth_required, current_user, roles_required, roles_accepted
 from flask_restful import Resource, marshal_with, fields, Api
-from flask import jsonify, request, Blueprint, make_response
+from flask import jsonify, request, Blueprint, make_response, current_app as app
 from datetime import datetime
+from backend.useful_fun import reject_new_request , auto_reject_request
 
+cache = app.cache
 service_request_api_bp = Blueprint("service_request_api", __name__, url_prefix="/api")
 api = Api(service_request_api_bp)
 
@@ -26,9 +28,10 @@ ser_req_fields = {
 
 class ServiceRequestsAPI(Resource):
 
-    @marshal_with(ser_req_fields)
     @auth_required("token")
     @roles_required("admin")
+    @marshal_with(ser_req_fields)
+    @cache.cached(timeout=60,key_prefix = 'sr_all_data')
     def get(self):
         ser_reqs = ServiceRequest.query.all()
         service_requests = []
@@ -75,6 +78,8 @@ class ServiceRequestsAPI(Resource):
             )
             db.session.add(ser_req)
             db.session.commit()
+            reject_new_request(ser_req)
+            cache.delete('sr_all_data')
             return make_response(jsonify({"message": "Created Sucessfully"}), 200)
 
         except Exception as e:
@@ -85,9 +90,9 @@ class ServiceRequestsAPI(Resource):
 
 class ServiceRequestAPI(Resource):
 
-    @marshal_with(ser_req_fields)
     @auth_required("token")
     @roles_accepted("admin", "professional", "customer")
+    @marshal_with(ser_req_fields)
     def get(self, id):
         ser_req = ServiceRequest.query.get(id)
         if not ser_req:
@@ -124,9 +129,12 @@ class ServiceRequestAPI(Resource):
             elif data.get("service_status") and data.get("professional_id"):
                 ser_req.service_status = data.get("service_status")
                 ser_req.professional_id = data.get("professional_id")
+                if ser_req.service_status == 'accepted':
+                    auto_reject_request(id)
+                    
             elif data.get("service_status"):
                 ser_req.service_status = data.get("service_status")
-
+                
             else:
                 ser_req.remarks = data.get("remarks")
                 request_date = data.get("date_of_request")
@@ -139,6 +147,7 @@ class ServiceRequestAPI(Resource):
                 )
 
             db.session.commit()
+            cache.delete('sr_all_data')
             return make_response(jsonify({"message": "updated Sucessfully"}), 200)
         except:
             db.session.rollback()
@@ -153,6 +162,7 @@ class ServiceRequestAPI(Resource):
         try:
             db.session.delete(ser_req)
             db.session.commit()
+            cache.delete('sr_all_data')
             return make_response(jsonify({"message": "Deleted Sucessfully"}), 200)
         except:
             db.session.rollback()

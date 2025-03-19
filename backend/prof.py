@@ -1,9 +1,11 @@
-from backend.model import Service, db, Users, Professional, Roles
+from sqlalchemy import desc, func
+from backend.model import Service, ServiceRequest, db, Users, Professional, Roles
 from flask_security import auth_required, current_user, roles_required, roles_accepted
 from flask_restful import Resource, marshal_with, fields, Api
-from flask import jsonify, request, Blueprint, make_response, send_from_directory
+from flask import jsonify, request, Blueprint, make_response, send_from_directory,current_app as app
 from backend.useful_fun import formatTime, os
 
+cache = app.cache
 prof_api_bp = Blueprint("prof_api", __name__, url_prefix="/api")
 api = Api(prof_api_bp)
 
@@ -28,9 +30,10 @@ prof_fields = {
 
 class ProfsAPI(Resource):
 
-    @marshal_with(prof_fields)
     @auth_required("token")
     @roles_accepted("admin", "customer")
+    @marshal_with(prof_fields)
+    @cache.cached(timeout=60,key_prefix = 'prof_all_data')
     def get(self):
 
         if current_user.roles[0].name == "customer":
@@ -62,9 +65,10 @@ class ProfsAPI(Resource):
 
 class ProfAPI(Resource):
 
-    @marshal_with(prof_fields)
     @auth_required("token")
     @roles_accepted("admin", "professional")
+    @marshal_with(prof_fields)
+    @cache.memoize(timeout=60)
     def get(self, id):
         prof = Professional.query.get(id)
         if not prof:
@@ -105,6 +109,8 @@ class ProfAPI(Resource):
                 prof.pincode = data.get("pincode")
 
                 db.session.commit()
+                cache.delete('prof_all_data')
+                cache.delete_memoized(ProfAPI.get, id)
                 return make_response(jsonify({"message": "updated Sucessfully"}), 200)
             except:
                 db.session.rollback()
@@ -121,6 +127,7 @@ class ProfAPI(Resource):
         try:
             db.session.delete(prof)
             db.session.commit()
+            cache.delete('prof_all_data')
             return make_response(jsonify({"message": "Deleted Sucessfully"}), 200)
         except:
             db.session.rollback()
@@ -152,6 +159,7 @@ class professionalFile(Resource):
             prof.active = data.get("active")
             prof.status = data.get("status")
             db.session.commit()
+            cache.delete('prof_all_data')
             return make_response(
                 jsonify({"message": f"{prof.name} is {prof.status}"}), 200
             )
@@ -169,10 +177,16 @@ class ProfessionalService(Resource):
 
     @auth_required("token")
     @roles_accepted("customer")
+    @cache.memoize(timeout=5)
     def get(self, id):
-        profs = Professional.query.filter(
-            Professional.service_id == id, Professional.active == True
-        ).all()
+        profs = (
+            db.session.query(Professional)
+            .join(ServiceRequest, ServiceRequest.professional_id == Professional.id, isouter=True)  
+            .filter(Professional.service_id == id, Professional.active == True) 
+            .group_by(Professional.id)  
+            .order_by(func.coalesce(func.avg(ServiceRequest.rating), 0).desc()) 
+            .all()  
+        )
 
         if not profs:
             return {"message": "Not Found"}, 404

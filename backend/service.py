@@ -20,6 +20,7 @@ service_fields = {
 class ServiceApi(Resource):
 
     @auth_required("token")
+    @cache.memoize(timeout=60)
     @marshal_with(service_fields)
     def get(self, id):
         ser = Service.query.get(id)
@@ -43,6 +44,7 @@ class ServiceApi(Resource):
             ser.description = data.get("description")
 
             db.session.commit()
+            cache.delete('all_service_data')
             return make_response(
                 jsonify({"message": "service updated sucessfully"}), 200
             )
@@ -61,7 +63,7 @@ class ServiceApi(Resource):
         try:
             db.session.delete(ser)
             db.session.commit()
-
+            cache.delete('all_service_data')
             return make_response(jsonify({"message": "Deleted Sucessfully"}), 200)
         except:
 
@@ -71,7 +73,7 @@ class ServiceApi(Resource):
 
 class ServicesApi(Resource):
 
-    @cache.cached(5)
+    @cache.cached(timeout=60,key_prefix = 'all_service_data')
     @marshal_with(service_fields)
     def get(self):
         sers = Service.query.all()
@@ -96,6 +98,7 @@ class ServicesApi(Resource):
                 )
                 db.session.add(service)
                 db.session.commit()
+                cache.delete('all_service_data')
                 return make_response(
                     jsonify({"message": "service created successfully"}), 201
                 )
@@ -112,8 +115,8 @@ api.add_resource(ServicesApi, "/services")
 
 class ServiceProfessional(Resource):
 
-    @marshal_with(service_fields)
     @auth_required("token")
+    @marshal_with(service_fields)
     def get(self):
         services_with_professional = (
             Service.query.join(Professional).filter(Professional.active == True).all()

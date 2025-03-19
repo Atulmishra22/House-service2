@@ -57,11 +57,11 @@ export default {
             <div v-if="filteredService.length > 0 && service_professionals.length == 0" class="services"> 
                 <h4 class="text-center"> Services </h4>
                 <div class="my-5 row container-fluid align-items-center justify-content-center">
-                    <div v-for="prof in filteredService" class="col-8 col-lg-4 col-xl-2 my-4">
-                    <div @click="serviceProfessionalCard()" class="card border-primary pointer-cursor">
+                    <div v-for="service in filteredServiceName" class="col-8 col-lg-4 col-xl-2 my-4">
+                    <div @click="serviceProfessionalCard(service)" class="card border-primary pointer-cursor">
                         <div class="card-body text-center">
                         <div class="card-title">
-                            <h5 class="card-title">{{prof.service_name}}</h5>
+                            <h5 class="card-title">{{service}}</h5>
                         </div>
                         </div>
                     </div>
@@ -178,7 +178,7 @@ export default {
                     <label for="remarks" class="form-label">Remarks:</label>
                     <input type="text" class="form-control" v-model="request.remarks" id="remarks" required>
                     </div>
-                    <button type="submit" class="btn btn-primary me-1" data-bs-dismiss="modal">BooK</button>
+                    <button type="submit" class="btn btn-primary me-1" >BooK</button>
                   </form>
                 </div>
                 <div class="modal-footer">
@@ -218,6 +218,7 @@ export default {
       request: {},
       filteredServicesRequest: [],
       filteredService: [],
+      filteredServiceName: [],
       professionals: [],
     };
   },
@@ -235,8 +236,8 @@ export default {
       }, 2000);
     },
 
-    serviceProfessionalCard(){
-      this.service_professionals = this.filteredService
+    serviceProfessionalCard(name){
+      this.service_professionals = this.filteredService.filter((prof)=> prof.service_name === name );
     },
 
     selectedProfessional(professional) {
@@ -326,8 +327,11 @@ export default {
         if (res.ok) {
           const data = await res.json();
           this.filteredService = data;
-          console.log(data);
-          console.log(this.filteredService)
+          this.filteredServiceName = [
+            ...new Set(
+              data.map(prof => prof.service_name) 
+            ),
+          ];
         }
       } catch (error) {
         console.log(error);
@@ -379,15 +383,18 @@ export default {
       if (query === "") {
         this.filteredServicesRequest = this.service_requests;
         this.filteredService = []
-      }
-      this.filteredServicesRequest = this.service_requests.filter(
-        (service_request) =>
-          service_request.professional_name
-            ? service_request.professional_name.toLowerCase().includes(query)
-            : false ||
-              service_request.service_name.toLowerCase().includes(query)
-      );
-      this.SearchProfessionals(query)
+      }else{
+        this.filteredServicesRequest = this.service_requests.filter(
+          (service_request) => {
+            const professionalName=service_request.professional_name
+              ? service_request.professional_name.toLowerCase().includes(query)
+              : false
+            const serviceName = service_request.service_name.toLowerCase().includes(query)
+
+            return professionalName || serviceName
+          }
+        );
+      this.SearchProfessionals(query)};
       
       
     },

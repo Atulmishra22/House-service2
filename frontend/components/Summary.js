@@ -49,6 +49,32 @@ export default{
             </div>
         </div>
         </div>
+
+        <div v-if="this.$store.state.role === 'admin'" class="col-md-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+            <h5 class="card-title mb-0">Professional User</h5>
+            </div>
+            <div class="card-body">
+            <div style="position: relative; height: 250px;">
+                <canvas ref="professionalUserChart" id="professionalUserChart"></canvas>
+            </div>
+            </div>
+        </div>
+        </div>
+
+        <div v-if="this.$store.state.role === 'admin'" class="col-md-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+            <h5 class="card-title mb-0">Customer User</h5>
+            </div>
+            <div class="card-body">
+            <div style="position: relative; height: 250px;">
+                <canvas ref="customerUserChart" id="customerUserChart"></canvas>
+            </div>
+            </div>
+        </div>
+        </div>
         
         
     </div>
@@ -65,7 +91,8 @@ export default{
               },
             userDetail:'',
             userCount:'',
-            
+            professionals:'',
+            customers:''
             
         }
     },
@@ -78,7 +105,8 @@ export default{
         this.fetchData();
     },
     updated() {
-        if (!this.isLoading && this.userRole === 'professional' ) {
+      if (!this.isLoading){
+        if (this.userRole === 'professional' ) {
             this.$nextTick(() => {
                 this.renderRatingChart();
                 this.renderBarChart(
@@ -96,7 +124,7 @@ export default{
                 
             });
         }
-        else if (!this.isLoading && this.userRole === 'customer') {
+        else if ( this.userRole === 'customer') {
             this.$nextTick(() => {
               this.renderBarChart(
                 "serviceRequestChart",
@@ -113,7 +141,7 @@ export default{
 
             });
         }
-        else if (!this.isLoading && this.userRole === 'admin') {
+        else if (this.userRole === 'admin') {
           this.$nextTick(() => {
             this.renderBarChart(
               "serviceRequestChart",
@@ -132,10 +160,24 @@ export default{
               ["Professionals","Customers"],
               [this.userCount.professionals,this.userCount.customers],
               "User Statistics"
-          );
+            );
+            this.renderBarChart(
+              "professionalUserChart", 
+              ["Active Professional","Blocked Professional"],
+              [this.professionals.active,this.professionals.blocked],
+              "Professional User"
+            );
+            this.renderBarChart(
+              "customerUserChart", 
+              ["Active Customer","Blocked Customer"],
+              [this.customers.active,this.customers.blocked],
+              "Customer User"
+            );
+
 
 
           });
+        }
       }
        
     },
@@ -189,6 +231,8 @@ export default{
               const data = await res.json()
               this.userDetail = data.service_request_stats
               this.userCount = data.user_counts
+              this.professionals = data.professionals
+              this.customers = data.customers
             }
           },
           

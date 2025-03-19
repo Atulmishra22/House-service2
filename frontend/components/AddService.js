@@ -19,7 +19,7 @@ export default {
             <input type="text" class="form-control" v-model="description" id="description" placeholder="Good and nice floor cleaning" required>
             </div>
             
-            <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Submit</button>
+            <button type="submit" class="btn btn-primary">Submit</button>
         </form>
     
     </div>

@@ -30,6 +30,9 @@ export default {
             placeholder="Enter your password" 
             required
           />
+          <p v-if="password && password.length < 8" style="color: red;">
+          Password must be at least 8 characters long.
+          </p>
         </div>
         <div class="mb-3">
         <label for="role" class="form-label">Select Role:</label>
@@ -88,7 +91,7 @@ export default {
         
 
 
-        <button type="submit" class="btn btn-primary">Register</button>
+        <button type="submit" class="btn btn-primary" :disabled="password.length < 8">Register</button>
       </form>
       <div v-if="alertBox" class="row justify-content-center">
       <div class="alert alert-primary alert-dismissible fade col-sm-5 col-xl-7 show my-1 shadow" role="alert">

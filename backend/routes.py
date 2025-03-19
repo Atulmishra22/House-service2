@@ -41,11 +41,18 @@ def createCsv():
 @app.get("/get-csv/<id>")
 def getCsv(id):
     result = AsyncResult(id)
-
-    if result.ready():
-        return send_file(f"./backend/celery/csv_files/{result.result}"), 200
-    else:
-        return {"result": "task not ready"}, 405
+    try:
+        if result.ready():
+            file_path = f"./backend/celery/csv_files/{result.result}"
+            if os.path.exists(file_path):
+                return send_file(file_path), 200
+            else:
+                print('File does not exist')
+                return jsonify({"error": "File not found"}), 404
+        else:
+            return jsonify({"result": "task not ready"}), 202
+    except :
+        return jsonify({'error':'something went wrong'}),500
 
 
 @app.route("/login", methods=["POST"])
@@ -203,17 +210,14 @@ def admin_stats():
         return jsonify({"message": "Unauthorized access"}), 403
 
     try:
-        user_counts = db.session.query(
-            func.count(Users.id).label("total_users"),
-            func.count(
-                case(
-                    (Users.roles.any(Roles.name == "professional"), Users.id),
-                    else_=None,
-                )
-            ).label("total_professionals"),
-            func.count(
-                case((Users.roles.any(Roles.name == "customer"), Users.id), else_=None)
-            ).label("total_customers"),
+        counts = db.session.query(
+            func.count(Users.id).label('total_users'),
+            func.count(Users.id).filter(Users.roles.any(Roles.name == 'professional')).label('total_professionals'),
+            func.count(Users.id).filter(Users.roles.any(Roles.name == 'customer')).label('total_customers'),
+            func.count(Users.id).filter(Users.roles.any(Roles.name == 'professional'), Users.active == True).label('active_professionals'),
+            func.count(Users.id).filter(Users.roles.any(Roles.name == 'professional'), Users.active == False).label('blocked_professionals'),
+            func.count(Users.id).filter(Users.roles.any(Roles.name == 'customer'), Users.active == True).label('active_customers'),
+            func.count(Users.id).filter(Users.roles.any(Roles.name == 'customer'), Users.active == False).label('blocked_customers')
         ).first()
         service_request_stats = (
             db.session.query(
@@ -237,11 +241,19 @@ def admin_stats():
                 service_request_counts[status] = count
                 service_request_counts["total"] += count
         result = {
+            "professionals":{
+                "active":counts.active_professionals,
+                "blocked":counts.blocked_professionals
+            },
             "user_counts" : {
-                "professionals": user_counts.total_professionals,
-                "total_users": user_counts.total_users - 1,
-                "customers": user_counts.total_customers,
-                },
+                "professionals": counts.total_professionals,
+                "total_users": counts.total_users - 1,
+                "customers": counts.total_customers,
+            },
+            "customers":{
+                "active":counts.active_customers,
+                "blocked":counts.blocked_customers
+            },
             "service_request_stats":service_request_counts,
         }
         return jsonify(result), 200

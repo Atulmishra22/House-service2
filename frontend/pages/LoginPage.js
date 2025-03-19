@@ -59,8 +59,10 @@ export default {
 
         if (res.ok) {
           const userData = await res.json();
-          localStorage.setItem('user',JSON.stringify(userData))
-          this.$store.commit('setUser')
+          localStorage.setItem('user',JSON.stringify(userData));
+          const tokenExpiryTime = Date.now() + 3600 * 1000;
+          localStorage.setItem('tokenExpiryTime',tokenExpiryTime);
+          this.$store.commit('setUser');
           if(userData.role === 'admin'){
             this.$router.push('/admin-dashboard')
 

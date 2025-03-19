@@ -97,6 +97,7 @@ export default {
     };
   },
   mounted() {
+    this.$store.dispatch('tokenExpiry')
     this.fetchProfessionalDetail();
     this.fetchRequestDetail();
   },

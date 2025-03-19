@@ -4,7 +4,6 @@ const store = Vuex.createStore({
     role: null,
     loggedIn: null,
     user_id: null,
-    professionalDetail:null,
   },
   mutations: {
     setUser(state) {
@@ -15,6 +14,7 @@ const store = Vuex.createStore({
           state.role = user.role;
           state.loggedIn = true;
           state.user_id = user.id;
+          
         }
       } catch (error) {
         console.warn(error);
@@ -26,15 +26,23 @@ const store = Vuex.createStore({
       state.loggedIn = false;
       state.user_id = null;
       localStorage.removeItem('user');
+      localStorage.removeItem('tokenExpiryTime');
       
     },
     
   },
-  action: {
+  actions: {
+    tokenExpiry({ commit }){
+      const expiryTime = localStorage.getItem('tokenExpiryTime');
+      if (expiryTime && Date.now() > expiryTime){
+        store.commit('logout');
 
+      }
+    }
   },
 });
 
 store.commit("setUser");
+store.dispatch('tokenExpiry');
 
 export default store;

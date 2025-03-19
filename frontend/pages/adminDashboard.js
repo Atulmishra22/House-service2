@@ -109,6 +109,7 @@ export default {
     };
   },
   created() {
+    
     this.fetchServiceRequests();
     this.fetchServices();
     this.fetchCustomers();
@@ -217,7 +218,7 @@ export default {
         if (createCsv.ok) {
           const task_id = (await createCsv.json()).task_id;
 
-          const max_tries = 30;
+          const max_tries = 100;
           let attempt = 0;
           const interval = setInterval(async () => {
             try {
@@ -229,7 +230,7 @@ export default {
                   },
                 }
               );
-              if (getCsv.ok) {
+              if (getCsv.status === 200) {
                 window.open(`${location.origin}/get-csv/${task_id}`);
                 this.showAlert("downloaded Sucessfully");
                 clearInterval(interval);
@@ -246,8 +247,13 @@ export default {
               }
             } catch (error) {
               console.log("something went wrong", error);
+              attempt++;
+
+              if (attempt >= max_tries){
+                console.log("Max attempts reached, stopping the interval.");
+                clearInterval(interval);}
             }
-          }, 100);
+          }, 400);
         } else {
           const data = createCsv.json();
           console.log(data);
