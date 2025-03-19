@@ -105,5 +105,5 @@ class ServiceRequest(db.Model):
     date_of_request = db.Column(db.DateTime, default=datetime.now, nullable=False)
     date_of_completion = db.Column(db.DateTime, nullable=True)
     service_status = db.Column(db.String, nullable=False, default="requested")
-    remarks = db.Column(db.Text, nullable=True)
+    remarks = db.Column(db.Text, nullable=False)
     rating = db.Column(db.Integer, nullable=True)
