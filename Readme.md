@@ -53,3 +53,25 @@ celery -A app:celery_app worker -l INFO
 ```
 ##### setup complete.
 
+#### Run the app:
+
+1. start the redis by the upper command
+> To stop the redis use 
+```script
+sudo service redis-server stop
+```
+2. start the flask:
+``` script 
+python3 app.py
+```
+3. start the celery worker and beat
+``` script
+celery -A app:celery_app worker -l INFO
+```
+``` script
+celery -A app:celery_app beat -l INFO
+```
+4. start the mailhog
+``` script
+~/go/bin/MailHog
+```
