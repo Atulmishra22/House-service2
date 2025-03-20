@@ -2,6 +2,8 @@ from backend.model import Professional, db, Service
 from flask_restful import Resource, fields, marshal_with, Api
 from flask_security import auth_required, current_user, roles_required, roles_accepted
 from flask import request, jsonify, Blueprint, make_response , current_app as app
+from backend.service_request import ServiceRequestsAPI
+from backend.prof import ProfsAPI
 
 cache = app.cache
 service_api_bp = Blueprint("service_api", __name__, url_prefix="/api")
@@ -64,6 +66,8 @@ class ServiceApi(Resource):
             db.session.delete(ser)
             db.session.commit()
             cache.delete('all_service_data')
+            cache.delete('sr_all_data')
+            cache.delete('prof_all_data')
             return make_response(jsonify({"message": "Deleted Sucessfully"}), 200)
         except:
 

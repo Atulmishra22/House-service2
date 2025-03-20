@@ -14,7 +14,7 @@ celery_app = app.extensions["celery"]
 def setup_periodic_tasks(sender, **kwargs):
 
     sender.add_periodic_task(
-        crontab(hour=6, minute=00),
+        crontab(hour=18, minute=0),
         service_request_reminder_emails.s(),
         name="daily_remainder",
     )

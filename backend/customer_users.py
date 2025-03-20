@@ -114,8 +114,7 @@ class CustomerExtra(Resource):
                 jsonify({"message": f"{customer.name} is {data.get('active')}"}), 200
             )
 
-        except Exception as e:
-            print(e)
+        except:
             db.session.rollback()
             return make_response(jsonify({"message": "something went wrong"}), 500)
 

@@ -21,9 +21,11 @@ from backend.useful_fun import *
 import uuid
 from backend.celery.tasks import create_csv
 from celery.result import AsyncResult
+from backend.prof import ProfsAPI
+from backend.customer_users import CustomersAPI
 
 datastore = app.security.datastore
-
+cache = app.cache
 
 @app.route("/", methods=["GET"])
 def homepage():
@@ -137,6 +139,8 @@ def register():
             db.session.add(prof)
 
         db.session.commit()
+        cache.delete('customer_all_data')
+        cache.delete('prof_all_data')
         return jsonify({"message": "user created successfully"}), 201
     except:
         db.session.rollback()

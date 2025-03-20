@@ -10,7 +10,7 @@ export default {
         <div class="row">
             <div class="d-flex justify-content-between shadow-lg text-bg-light">
                 <div class="link d-flex">
-                <router-link to="/admin-dashboard" class="d-block text-decoration-none text-dark p-3 "><i class="fas fa-tachometer-alt me-2"></i> Dashboard </router-link>
+                <router-link to="/admin-dashboard" class="d-block text-decoration-none text-dark p-3 "><i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard </router-link>
                 <a class="d-block btn  text-dark p-3" data-bs-toggle="modal" data-bs-target="#add-service"><i class="fa-solid fa-file-circle-plus"></i> Add Service </a>
                 <router-link to="/admin-dashboard/summary" class="d-block text-decoration-none text-dark p-3"><i class="fas fa-rocket me-2"></i> Summary </router-link>
                 </div>
