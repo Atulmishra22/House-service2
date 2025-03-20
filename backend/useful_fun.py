@@ -21,7 +21,8 @@ def formatTime(dt: datetime):
         return date_time
     else:
         return None
-    
+
+
 def reject_new_request(request):
     pid = request.professional_id
     rdate = request.date_of_request
@@ -43,6 +44,7 @@ def reject_new_request(request):
     if overlap_request:
         request.service_status = "rejected"
     db.session.commit()
+
 
 def auto_reject_request(rid):
     request = ServiceRequest.query.get(rid)
@@ -67,4 +69,25 @@ def auto_reject_request(rid):
     if overlap_request:
         for req in overlap_request:
             req.service_status = "rejected"
+    db.session.commit()
+
+
+def reject_sr(id, user):
+    if user == "professional":
+        srs = ServiceRequest.query.filter(
+            ServiceRequest.professional_id == id,
+            ServiceRequest.service_status.in_(["accepted", "requested"]),
+        ).all()
+        if srs:
+            for sr in srs:
+                sr.service_status = "rejected"
+    elif user == "customer":
+        srs = ServiceRequest.query.filter(
+            ServiceRequest.customer_id == id,
+            ServiceRequest.service_status.in_(["accepted", "requested"]),
+        ).all()
+        if srs:
+            for sr in srs:
+                sr.service_status = "canceled"
+
     db.session.commit()

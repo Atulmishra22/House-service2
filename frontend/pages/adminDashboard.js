@@ -141,9 +141,11 @@ export default {
     },
     refreshProfessional() {
       this.fetchProfessionals();
+      this.fetchServiceRequests();
     },
     refreshCustomer() {
       this.fetchCustomers();
+      this.fetchServiceRequests();
     },
     async fetchServiceRequests() {
       try {
@@ -270,7 +272,7 @@ export default {
         this.filteredServiceRequests = this.service_requests;
         this.filteredCutsomers = this.customers;
         this.filteredProfessionals = this.professionals;
-      }
+      }else{
       this.filteredServices = this.services.filter(
         (service) =>
           service.name.toLowerCase().includes(query) ||
@@ -281,7 +283,7 @@ export default {
         (service_request) =>
           service_request.service_name.toLowerCase().includes(query) ||
           service_request.customer_name.toLowerCase().includes(query) ||
-          service_request.professional_name.toLowerCase().includes(query)
+          service_request.professional_name?.toLowerCase().includes(query)
       );
       this.filteredCutsomers = this.customers.filter(
         (customer) =>
@@ -296,6 +298,7 @@ export default {
           professional.address.toLowerCase().includes(query) ||
           professional.pincode.toString().includes(query)
       );
+    }
     },
   },
 };

@@ -3,7 +3,8 @@ from backend.model import Service, ServiceRequest, db, Users, Professional, Role
 from flask_security import auth_required, current_user, roles_required, roles_accepted
 from flask_restful import Resource, marshal_with, fields, Api
 from flask import jsonify, request, Blueprint, make_response, send_from_directory,current_app as app
-from backend.useful_fun import formatTime, os
+from backend.useful_fun import formatTime, os, reject_sr
+from backend.service_request import ServiceRequestsAPI
 
 cache = app.cache
 prof_api_bp = Blueprint("prof_api", __name__, url_prefix="/api")
@@ -128,6 +129,7 @@ class ProfAPI(Resource):
             db.session.delete(prof)
             db.session.commit()
             cache.delete('prof_all_data')
+            cache.delete('sr_all_data')
             return make_response(jsonify({"message": "Deleted Sucessfully"}), 200)
         except:
             db.session.rollback()
@@ -158,8 +160,11 @@ class professionalFile(Resource):
         try:
             prof.active = data.get("active")
             prof.status = data.get("status")
+            if prof.status == 'blocked':
+                reject_sr(id, 'professional')
             db.session.commit()
             cache.delete('prof_all_data')
+            cache.delete('sr_all_data')
             return make_response(
                 jsonify({"message": f"{prof.name} is {prof.status}"}), 200
             )

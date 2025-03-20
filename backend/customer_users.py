@@ -2,6 +2,8 @@ from backend.model import db, Users, Professional, Roles
 from flask_security import auth_required, current_user, roles_required, roles_accepted
 from flask_restful import Api, Resource, marshal_with, fields
 from flask import jsonify, request, Blueprint, make_response, current_app as app
+from backend.service_request import ServiceRequestsAPI
+from backend.useful_fun import reject_sr
 
 cache = app.cache
 customer_api_bp = Blueprint("customer_api", __name__, url_prefix="/api")
@@ -81,6 +83,7 @@ class CustomerAPI(Resource):
             db.session.delete(customer)
             db.session.commit()
             cache.delete('customer_all_data')
+            cache.delete('sr_all_data')
             return make_response(jsonify({"message": "Deleted Sucessfully"}), 200)
         except:
             db.session.rollback()
@@ -102,13 +105,17 @@ class CustomerExtra(Resource):
         data = request.get_json()
         try:
             customer.active = data.get("active")
+            if customer.active == 0:
+                reject_sr(id, 'customer')
             db.session.commit()
             cache.delete('customer_all_data')
+            cache.delete('sr_all_data')
             return make_response(
                 jsonify({"message": f"{customer.name} is {data.get('active')}"}), 200
             )
 
-        except:
+        except Exception as e:
+            print(e)
             db.session.rollback()
             return make_response(jsonify({"message": "something went wrong"}), 500)
 
